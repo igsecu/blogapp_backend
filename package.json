@@ -4,7 +4,7 @@
   "description": "Full Blog Application Backend",
   "main": "index.js",
   "scripts": {
-    "dev": "npm run dev",
+    "dev": "nodemon index.js",
     "start": "node index.js",
     "test": "jest --watch"
   },
@@ -24,5 +24,8 @@
     "sequelize": "^6.37.1",
     "supertest": "^6.3.4",
     "uuid": "^9.0.1"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.0"
   }
 }
