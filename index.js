@@ -71,3 +71,5 @@ db.sync({}).then(() => {
     console.log(`Server listening on port ${PORT}...`);
   });
 });
+
+module.exports = app;
