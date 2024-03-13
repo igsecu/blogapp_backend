@@ -4,7 +4,9 @@
   "description": "Full Blog Application Backend",
   "main": "index.js",
   "scripts": {
-    "test": "npm run dev"
+    "dev": "npm run dev",
+    "start": "node index.js",
+    "test": "jest --watch"
   },
   "author": "igsecu",
   "license": "ISC",
