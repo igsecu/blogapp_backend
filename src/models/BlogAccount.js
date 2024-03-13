@@ -31,6 +31,14 @@ const BlogAccount = db.define(
       type: DataTypes.BOOLEAN,
       defaultValue: false,
     },
+    image: {
+      type: DataTypes.STRING,
+      defaultValue: null,
+    },
+    image_id: {
+      type: DataTypes.STRING,
+      defaultValue: null,
+    },
   },
   {
     timestamps: true,
