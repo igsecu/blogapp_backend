@@ -7,6 +7,9 @@ const router = require("./src/routes/index");
 
 const db = require("./src/db");
 
+const session = require("express-session");
+const passport = require("passport");
+
 // Database models
 const Blog = require("./src/models/Blog");
 const Comment = require("./src/models/Comment");
@@ -39,6 +42,20 @@ Comment.belongsTo(BlogAccount);
 // Body-Parser middleware
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
+
+// Express Session Middleware
+app.use(
+  session({
+    secret: `${process.env.SESSION_SECRET}`,
+    resave: false,
+    saveUninitialized: false,
+  })
+);
+
+// Passport Config
+require("./src/config/passport")(passport);
+app.use(passport.initialize());
+app.use(passport.session());
 
 // Res Headers
 app.use((req, res, next) => {
