@@ -49,7 +49,6 @@ describe("POST /api/account route -> parameter validations", () => {
     expect(response.status).toBe(400);
     expect(response.body.msg).toBe("Password is missing");
   });
-
   it("it should return 400 status code -> password must be at least 8 characters long", async () => {
     const user = {
       password: "1234",
@@ -311,5 +310,159 @@ describe("POST /api/account route -> check if username exists", () => {
     expect(response.body.msg).toBe(
       `Username "user1" exists! Try with another one!`
     );
+  });
+});
+
+describe("POST /api/login route -> login process", () => {
+  it("it should return a 400 status code -> password parameter is missing", async () => {
+    const user = {
+      email: "user1@fakeapis.com",
+    };
+
+    const response = await request(app).post("/api/login").send(user);
+    expect(response.status).toBe(400);
+    expect(response.body.msg).toBe("Password is missing");
+  });
+  it("it should return a 400 status code -> email parameter is missing", async () => {
+    const user = {
+      password: 0,
+    };
+
+    const response = await request(app).post("/api/login").send(user);
+    expect(response.status).toBe(400);
+    expect(response.body.msg).toBe("Email is missing");
+  });
+  it("it should return a 400 status code -> email must be a string", async () => {
+    const user = {
+      email: 1234,
+      password: "Password14!",
+    };
+
+    const response = await request(app).post("/api/login").send(user);
+    expect(response.status).toBe(400);
+    expect(response.body.msg).toBe("Email must be a string");
+  });
+  it("it should return a 400 status code -> email does not have a @", async () => {
+    const user = {
+      email: "user1email.com",
+      password: "Password14!",
+    };
+
+    const response = await request(app).post("/api/login").send(user);
+    expect(response.status).toBe(400);
+    expect(response.body.msg).toBe("Email format is not valid");
+  });
+  it("it should return a 400 status code -> email format is not valid", async () => {
+    const user = {
+      email: "user1@emailcom",
+      password: "Password14!",
+    };
+
+    const response = await request(app).post("/api/login").send(user);
+    expect(response.status).toBe(400);
+    expect(response.body.msg).toBe("Email format is not valid");
+  });
+  it("it should return a 400 status code -> email second part has a symbol", async () => {
+    const user = {
+      email: "user1@email.#com",
+      password: "Password14!",
+    };
+
+    const response = await request(app).post("/api/login").send(user);
+    expect(response.status).toBe(400);
+    expect(response.body.msg).toBe("Email format not valid");
+  });
+  it("it should return a 400 status code -> email second part has a number", async () => {
+    const user = {
+      email: "user1@email.1com",
+      password: "Password14!",
+    };
+
+    const response = await request(app).post("/api/login").send(user);
+    expect(response.status).toBe(400);
+    expect(response.body.msg).toBe("Email format not valid");
+  });
+  it("it should return a 404 status code -> email not found", async () => {
+    const user = {
+      email: "user4@email.com",
+      password: "Password14!",
+    };
+
+    const response = await request(app).post("/api/login").send(user);
+    expect(response.status).toBe(404);
+    expect(response.body.msg).toBe("Email address not found!");
+  });
+  it("it should return a 400 status code -> incorrect password", async () => {
+    const user = {
+      email: "user2@fakeapis.io",
+      password: "Password14@",
+    };
+
+    const response = await request(app).post("/api/login").send(user);
+    expect(response.status).toBe(400);
+    expect(response.body.msg).toBe("Incorrect password!");
+  });
+  it("it should return a 200 status code -> user logged in", async () => {
+    const user = {
+      email: "user2@fakeapis.io",
+      password: "F4k3ap1s.io",
+    };
+
+    const response = await request(app).post("/api/login").send(user);
+    expect(response.status).toBe(200);
+    expect(response.body.msg).toBe("You logged in successfully");
+    cookie = response.headers["set-cookie"];
+  });
+  it("it should return a 400 status code -> a user is already logged in", async () => {
+    const user = {
+      email: "user116@email.com",
+      password: "Password14!",
+    };
+
+    const response = await request(app)
+      .post("/api/login")
+      .send(user)
+      .set("Cookie", cookie);
+    expect(response.status).toBe(400);
+    expect(response.body.msg).toBe("An user is already logged in!");
+  });
+  it("it should return a 200 status code -> logout process", async () => {
+    const response = await request(app)
+      .get("/api/logout")
+      .set("Cookie", cookie);
+    expect(response.status).toBe(200);
+    expect(response.body.msg).toBe("You successfully logged out!");
+  });
+  it("it should return a 200 status code -> user logged in", async () => {
+    const user = {
+      email: "user2@fakeapis.io",
+      password: "F4k3ap1s.io",
+    };
+
+    const response = await request(app).post("/api/login").send(user);
+    expect(response.status).toBe(200);
+    expect(response.body.msg).toBe("You logged in successfully");
+    cookie = response.headers["set-cookie"];
+  });
+  it("it should return a 200 status code -> get logged in account", async () => {
+    const response = await request(app)
+      .get("/api/account")
+      .set("Cookie", cookie);
+    expect(response.status).toBe(200);
+    console.log(response.body);
+  });
+  it("it should return a 200 status code -> logout process", async () => {
+    const response = await request(app)
+      .get("/api/logout")
+      .set("Cookie", cookie);
+    expect(response.status).toBe(200);
+    expect(response.body.msg).toBe("You successfully logged out!");
+  });
+  it("it should return a 400 status code -> no user logged in", async () => {
+    const response = await request(app)
+      .get("/api/account")
+      .set("Cookie", cookie);
+    expect(response.status).toBe(400);
+    expect(response.body.msg).toBe("No Blog Account logged in");
   });
 });
