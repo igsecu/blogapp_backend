@@ -20,7 +20,7 @@ const BlogAccount = db.define(
     },
     username: {
       type: DataTypes.STRING,
-      defaultValue: "",
+      allowNull: false,
       unique: true,
     },
     isBanned: {
