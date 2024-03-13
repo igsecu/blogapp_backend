@@ -33,6 +33,9 @@ Notification.belongsTo(BlogAccount);
 Post.hasMany(Comment);
 Comment.belongsTo(Post);
 
+BlogAccount.hasMany(Comment);
+Comment.belongsTo(BlogAccount);
+
 // Body-Parser middleware
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
