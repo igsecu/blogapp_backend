@@ -91,17 +91,26 @@ const validatePasswordConfirmation = (password, password2) => {
 
 // Validates email
 const validateEmail = (email) => {
+  if (email === 0 || email === false) return "Email must be a string";
   if (!email) return "Email is missing";
   if (typeof email !== "string") return "Email must be a string";
   if (email.split("@").length !== 2) return "Email format is not valid";
   if (email.split("@")[1].split(".").length < 2)
     return "Email format is not valid";
-
   for (s of email.split("@")[1].split(".")) {
     if (hasSymbol(s)) return "Email format not valid";
     if (hasNumber(s)) return "Email format not valid";
   }
 
+  return false;
+};
+
+// Validates username
+const validateUsername = (username) => {
+  if (username === 0 || username === false) return "Username must be a string";
+  if (!username) return "Username is missing";
+  if (typeof username !== "string") return "Username must be a string";
+  if (username.length < 4) return "Username must be at least 4 characters long";
   return false;
 };
 
@@ -248,4 +257,5 @@ module.exports = {
   validatePassword,
   validatePasswordConfirmation,
   validateVideoFileType,
+  validateUsername,
 };
