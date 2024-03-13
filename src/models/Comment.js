@@ -1,5 +1,5 @@
 const { DataTypes } = require("sequelize");
-const db = require("../../db");
+const db = require("../db");
 
 const Comment = db.define(
   "comment",
@@ -16,7 +16,6 @@ const Comment = db.define(
     username: {
       type: DataTypes.STRING,
       allowNull: false,
-      defaultValue: "Anonymous",
     },
   },
   {

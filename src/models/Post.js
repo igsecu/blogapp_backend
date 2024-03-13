@@ -1,5 +1,5 @@
 const { DataTypes } = require("sequelize");
-const db = require("../../db");
+const db = require("../db");
 
 const Post = db.define(
   "post",
@@ -33,11 +33,11 @@ const Post = db.define(
       type: DataTypes.INTEGER,
       defaultValue: 0,
     },
-    comments: {
+    comments_number: {
       type: DataTypes.INTEGER,
       defaultValue: 0,
     },
-    likes: {
+    likes_number: {
       type: DataTypes.INTEGER,
       defaultValue: 0,
     },
