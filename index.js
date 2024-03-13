@@ -5,6 +5,32 @@ const PORT = process.env.PORT || 5000;
 
 const db = require("./src/db");
 
+// Database models
+const Blog = require("./src/models/Blog");
+const Comment = require("./src/models/Comment");
+const Like = require("./src/models/Like");
+const Notification = require("./src/models/Notification");
+const Post = require("./src/models/Post");
+const BlogAccount = require("./src/models/BlogAccount");
+
+BlogAccount.hasMany(Blog);
+Blog.belongsTo(BlogAccount);
+
+Blog.hasMany(Post);
+Post.belongsTo(Blog);
+
+BlogAccount.hasMany(Like);
+Like.belongsTo(BlogAccount);
+
+Post.hasMany(Like);
+Like.belongsTo(Post);
+
+BlogAccount.hasMany(Notification);
+Notification.belongsTo(BlogAccount);
+
+Post.hasMany(Comment);
+Comment.belongsTo(Post);
+
 // Body-Parser middleware
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
