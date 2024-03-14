@@ -20,6 +20,7 @@ const getBlogAccountById = async (id) => {
         "isBanned",
         "isVerified",
         "image",
+        "type",
       ],
     });
 
@@ -31,6 +32,7 @@ const getBlogAccountById = async (id) => {
         isBanned: account.isBanned,
         isVerified: account.isVerified,
         image: account.image,
+        type: account.type,
       };
     }
 
