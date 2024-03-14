@@ -7,6 +7,7 @@ const bcrypt = require("bcryptjs");
 const { getBlogAccountById } = require("../controllers/blogs");
 
 const GoogleStrategy = require("passport-google-oauth20").Strategy;
+const GithubStrategy = require("passport-github2").Strategy;
 
 module.exports = (passport) => {
   passport.use(
@@ -111,6 +112,52 @@ module.exports = (passport) => {
         }
       )
     );
+
+  // Github Strategy
+  passport.use(
+    new GithubStrategy(
+      {
+        clientID: process.env.GITHUB_CLIENT_ID,
+        clientSecret: process.env.GITHUB_CLIENT_SECRET,
+        scope: ["user:email"],
+        callbackURL: "/api/auth/github/callback",
+      },
+      async (accessToken, refreshToken, profile, done) => {
+        try {
+          const userFound = await BlogAccount.findOne({
+            where: {
+              email: profile.emails[0].value,
+            },
+          });
+
+          if (userFound) {
+            const account = await getBlogAccountById(userFound.id);
+
+            if (account.isBanned === true) {
+              return done(null, false, {
+                statusCode: 400,
+                msg: "This account is banned! Please contact the admin of the page...",
+              });
+            }
+
+            if (account.type === "GITHUB") {
+              return done(null, account);
+            }
+          } else {
+            const accountCreated = await BlogAccount.create({
+              email: profile.emails[0].value,
+              type: "GITHUB",
+            });
+            if (accountCreated) {
+              return done(null, accountCreated);
+            }
+          }
+        } catch (error) {
+          return done(error, null);
+        }
+      }
+    )
+  );
 
   passport.serializeUser((user, done) => {
     done(null, user.id);
