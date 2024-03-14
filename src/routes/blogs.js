@@ -27,6 +27,29 @@ const { Op } = require("sequelize");
 
 const passport = require("passport");
 
+// Google Callback
+router.get(
+  "/auth/google/callback",
+  passport.authenticate("google"),
+  async (req, res, next) => {
+    if (req.user) {
+      const accountFound = await getBlogAccountById(req.user.id);
+      return res.status(200).json({
+        statusCode: 200,
+        data: accountFound,
+      });
+    } else {
+      return next("Error trying to authenticate with Google");
+    }
+  }
+);
+
+// Google Authentication
+router.get(
+  "/auth/google",
+  passport.authenticate("google", { scope: ["profile", "email"] })
+);
+
 // Get Logged in account
 router.get("/account", async (req, res) => {
   if (req.user) {
@@ -117,7 +140,7 @@ router.post("/login", async (req, res, next) => {
 
 // Create new user account
 router.post("/account", async (req, res, next) => {
-  const { email, password, password2, username } = req.body;
+  const { email, password, password2 } = req.body;
   try {
     // Validations
     if (validateEmail(email)) {
@@ -154,28 +177,6 @@ router.post("/account", async (req, res, next) => {
       });
     }
 
-    if (validateUsername(username)) {
-      return res.status(400).json({
-        statusCode: 400,
-        msg: validateUsername(username),
-      });
-    }
-
-    const usernameExist = await BlogAccount.findOne({
-      where: {
-        username: {
-          [Op.iLike]: `@${username}`,
-        },
-      },
-    });
-
-    if (usernameExist) {
-      return res.status(400).json({
-        statusCode: 400,
-        msg: `Username "${username}" exists! Try with another one!`,
-      });
-    }
-
     // Hash Password
     bcrypt.genSalt(10, (err, salt) => {
       bcrypt.hash(password, salt, async (err, hash) => {
@@ -186,7 +187,7 @@ router.post("/account", async (req, res, next) => {
           const accountCreated = await BlogAccount.create({
             password: hash,
             email,
-            username: `@${username.toLowerCase()}`,
+            type: "LOCAL",
           });
 
           if (accountCreated) {
@@ -208,5 +209,29 @@ router.post("/account", async (req, res, next) => {
     return next("Error trying to create a new account");
   }
 });
+
+/*     if (validateUsername(username)) {
+      return res.status(400).json({
+        statusCode: 400,
+        msg: validateUsername(username),
+      });
+    }
+
+    const usernameExist = await BlogAccount.findOne({
+      where: {
+        username: {
+          [Op.iLike]: `@${username}`,
+        },
+      },
+    });
+
+    if (usernameExist) {
+      return res.status(400).json({
+        statusCode: 400,
+        msg: `Username "${username}" exists! Try with another one!`,
+      });
+    } */
+
+// username: `@${username.toLowerCase()}`,
 
 module.exports = router;
