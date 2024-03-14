@@ -11,7 +11,6 @@ const BlogAccount = db.define(
     },
     password: {
       type: DataTypes.STRING,
-      allowNull: false,
     },
     email: {
       type: DataTypes.STRING,
@@ -20,7 +19,6 @@ const BlogAccount = db.define(
     },
     username: {
       type: DataTypes.STRING,
-      allowNull: false,
       unique: true,
     },
     isBanned: {
@@ -38,6 +36,10 @@ const BlogAccount = db.define(
     image_id: {
       type: DataTypes.STRING,
       defaultValue: null,
+    },
+    type: {
+      type: DataTypes.STRING,
+      allowNull: false,
     },
   },
   {
