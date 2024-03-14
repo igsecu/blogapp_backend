@@ -86,6 +86,13 @@ module.exports = (passport) => {
             if (userFound) {
               const account = await getBlogAccountById(userFound.id);
 
+              if (account.isBanned === true) {
+                return done(null, false, {
+                  statusCode: 400,
+                  msg: "This account is banned! Please contact the admin of the page...",
+                });
+              }
+
               if (account.type === "GOOGLE") {
                 return done(null, account);
               }
