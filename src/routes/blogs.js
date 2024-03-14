@@ -27,6 +27,29 @@ const { Op } = require("sequelize");
 
 const passport = require("passport");
 
+// Github Callback
+router.get(
+  "/auth/github/callback",
+  passport.authenticate("github"),
+  async (req, res, next) => {
+    if (req.user) {
+      const accountFound = await getBlogAccountById(req.user.id);
+      return res.status(200).json({
+        statusCode: 200,
+        data: accountFound,
+      });
+    } else {
+      return next("Error trying to authenticate with Google");
+    }
+  }
+);
+
+// Github Authentication
+router.get(
+  "/auth/github",
+  passport.authenticate("github", { scope: ["user:email"] })
+);
+
 // Google Callback
 router.get(
   "/auth/google/callback",
