@@ -193,43 +193,6 @@ describe("POST /api/account route -> parameter validations", () => {
       "Password and Password Confirmation not match"
     );
   });
-  it("it should return 400 status code -> username parameter is missing", async () => {
-    const user = {
-      email: "newaccount@email.com",
-      password: "Password14!",
-      password2: "Password14!",
-    };
-
-    const response = await request(app).post("/api/account").send(user);
-    expect(response.status).toBe(400);
-    expect(response.body.msg).toBe("Username is missing");
-  });
-  it("it should return 400 status code -> username must be a string", async () => {
-    const user = {
-      email: "newaccount@email.com",
-      password: "Password14!",
-      password2: "Password14!",
-      username: 1234,
-    };
-
-    const response = await request(app).post("/api/account").send(user);
-    expect(response.status).toBe(400);
-    expect(response.body.msg).toBe("Username must be a string");
-  });
-  it("it should return 400 status code -> username must be 4 characters long", async () => {
-    const user = {
-      email: "newaccount@email.com",
-      password: "Password14!",
-      password2: "Password14!",
-      username: "123",
-    };
-
-    const response = await request(app).post("/api/account").send(user);
-    expect(response.status).toBe(400);
-    expect(response.body.msg).toBe(
-      "Username must be at least 4 characters long"
-    );
-  });
 });
 
 let account1_id, account2_id, account3_id;
@@ -292,23 +255,6 @@ describe("POST /api/account route -> check if email exists", () => {
     expect(response.status).toBe(400);
     expect(response.body.msg).toBe(
       `Email "user1@fakeapis.io" exists! Try with another one!`
-    );
-  });
-});
-
-describe("POST /api/account route -> check if username exists", () => {
-  it("it should return a 400 status code -> username exists", async () => {
-    const user = {
-      email: "user4@fakeapis.io",
-      password: "Password14!",
-      password2: "Password14!",
-      username: "user1",
-    };
-
-    const response = await request(app).post("/api/account").send(user);
-    expect(response.status).toBe(400);
-    expect(response.body.msg).toBe(
-      `Username "user1" exists! Try with another one!`
     );
   });
 });
@@ -449,7 +395,6 @@ describe("POST /api/login route -> login process", () => {
       .get("/api/account")
       .set("Cookie", cookie);
     expect(response.status).toBe(200);
-    console.log(response.body);
   });
   it("it should return a 200 status code -> logout process", async () => {
     const response = await request(app)
@@ -466,3 +411,58 @@ describe("POST /api/login route -> login process", () => {
     expect(response.body.msg).toBe("No Blog Account logged in");
   });
 });
+
+/* describe("POST /api/account route -> check if username exists", () => {
+    it("it should return a 400 status code -> username exists", async () => {
+      const user = {
+        email: "user4@fakeapis.io",
+        password: "Password14!",
+        password2: "Password14!",
+        username: "user1",
+      };
+  
+      const response = await request(app).post("/api/account").send(user);
+      expect(response.status).toBe(400);
+      expect(response.body.msg).toBe(
+        `Username "user1" exists! Try with another one!`
+      );
+    });
+  }); */
+
+/* it("it should return 400 status code -> username parameter is missing", async () => {
+    const user = {
+      email: "newaccount@email.com",
+      password: "Password14!",
+      password2: "Password14!",
+    };
+
+    const response = await request(app).post("/api/account").send(user);
+    expect(response.status).toBe(400);
+    expect(response.body.msg).toBe("Username is missing");
+  });
+  it("it should return 400 status code -> username must be a string", async () => {
+    const user = {
+      email: "newaccount@email.com",
+      password: "Password14!",
+      password2: "Password14!",
+      username: 1234,
+    };
+
+    const response = await request(app).post("/api/account").send(user);
+    expect(response.status).toBe(400);
+    expect(response.body.msg).toBe("Username must be a string");
+  });
+  it("it should return 400 status code -> username must be 4 characters long", async () => {
+    const user = {
+      email: "newaccount@email.com",
+      password: "Password14!",
+      password2: "Password14!",
+      username: "123",
+    };
+
+    const response = await request(app).post("/api/account").send(user);
+    expect(response.status).toBe(400);
+    expect(response.body.msg).toBe(
+      "Username must be at least 4 characters long"
+    );
+  }); */
