@@ -33,7 +33,6 @@ describe("POST /api/account route -> parameter validations", () => {
     const user = {
       password: 1234,
       email: "user1@email.com",
-      username: "User One",
     };
 
     const response = await request(app).post("/api/account").send(user);
@@ -53,7 +52,6 @@ describe("POST /api/account route -> parameter validations", () => {
     const user = {
       password: "1234",
       email: "user1@email.com",
-      username: "User One",
     };
 
     const response = await request(app).post("/api/account").send(user);
@@ -66,7 +64,6 @@ describe("POST /api/account route -> parameter validations", () => {
     const user = {
       password: "password",
       email: "user1@email.com",
-      username: "User One",
     };
 
     const response = await request(app).post("/api/account").send(user);
@@ -77,7 +74,6 @@ describe("POST /api/account route -> parameter validations", () => {
     const user = {
       password: "Password",
       email: "user1@email.com",
-      username: "User One",
     };
 
     const response = await request(app).post("/api/account").send(user);
@@ -88,7 +84,6 @@ describe("POST /api/account route -> parameter validations", () => {
     const user = {
       password: "Password14",
       email: "user1@email.com",
-      username: "User One",
     };
 
     const response = await request(app).post("/api/account").send(user);
@@ -99,7 +94,6 @@ describe("POST /api/account route -> parameter validations", () => {
     const user = {
       password: "PASSWORD14!",
       email: "user1@email.com",
-      username: "User One",
     };
 
     const response = await request(app).post("/api/account").send(user);
@@ -117,7 +111,6 @@ describe("POST /api/account route -> parameter validations", () => {
     const user = {
       email: 1234,
       password: "Password14!",
-      username: "User One",
     };
 
     const response = await request(app).post("/api/account").send(user);
@@ -128,7 +121,6 @@ describe("POST /api/account route -> parameter validations", () => {
     const user = {
       email: "user1email.com",
       password: "Password14!",
-      username: "User One",
     };
 
     const response = await request(app).post("/api/account").send(user);
@@ -139,7 +131,6 @@ describe("POST /api/account route -> parameter validations", () => {
     const user = {
       email: "user1@emailcom",
       password: "Password14!",
-      username: "User One",
     };
 
     const response = await request(app).post("/api/account").send(user);
@@ -150,7 +141,6 @@ describe("POST /api/account route -> parameter validations", () => {
     const user = {
       email: "user1@email.#com",
       password: "Password14!",
-      username: "User One",
     };
 
     const response = await request(app).post("/api/account").send(user);
@@ -161,7 +151,6 @@ describe("POST /api/account route -> parameter validations", () => {
     const user = {
       email: "user1@email.1com",
       password: "Password14!",
-      username: "User One",
     };
 
     const response = await request(app).post("/api/account").send(user);
@@ -171,7 +160,6 @@ describe("POST /api/account route -> parameter validations", () => {
   it("it should return a 400 status code -> password confirmation parameter is missing", async () => {
     const user = {
       email: "user1@email.com",
-      username: "User One",
       password: "Password14!",
     };
 
@@ -182,7 +170,6 @@ describe("POST /api/account route -> parameter validations", () => {
   it("it should return a 400 status code -> password and password confirmation not match", async () => {
     const user = {
       email: "user1@email.com",
-      username: "User One",
       password: "Password14!",
       password2: "Password14@",
     };
@@ -203,7 +190,6 @@ describe("POST /api/account route -> create new user", () => {
       email: "user1@fakeapis.io",
       password: "F4k3ap1s.io",
       password2: "F4k3ap1s.io",
-      username: "user1",
     };
 
     const response = await request(app).post("/api/account").send(user);
@@ -217,7 +203,6 @@ describe("POST /api/account route -> create new user", () => {
       email: "user2@fakeapis.io",
       password: "F4k3ap1s.io",
       password2: "F4k3ap1s.io",
-      username: "user2",
     };
 
     const response = await request(app).post("/api/account").send(user);
@@ -231,7 +216,6 @@ describe("POST /api/account route -> create new user", () => {
       email: "user3@fakeapis.io",
       password: "F4k3ap1s.io",
       password2: "F4k3ap1s.io",
-      username: "user3",
     };
 
     const response = await request(app).post("/api/account").send(user);
@@ -248,7 +232,6 @@ describe("POST /api/account route -> check if email exists", () => {
       email: "user1@fakeapis.io",
       password: "Password14!",
       password2: "Password14!",
-      username: "user1",
     };
 
     const response = await request(app).post("/api/account").send(user);
