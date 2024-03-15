@@ -13,7 +13,7 @@ cloudinary.config({
 
 const uploadProfileImage = async (filePath) => {
   return await cloudinary.uploader.upload(filePath, {
-    folder: "fakeapis.io/blog_app/profiles",
+    folder: "/blog_app/profiles",
   });
 };
 
