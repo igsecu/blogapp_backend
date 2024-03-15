@@ -216,6 +216,11 @@ router.post("/account", async (req, res, next) => {
           if (accountCreated) {
             const account = await getBlogAccountById(accountCreated.id);
 
+            await Notification.create({
+              blogAccountId: account.id,
+              text: "Your account was created successfully!",
+            });
+
             return res.status(201).json({
               statusCode: 201,
               data: account,
