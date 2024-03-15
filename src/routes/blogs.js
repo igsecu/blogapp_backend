@@ -36,6 +36,7 @@ router.get(
       const accountFound = await getBlogAccountById(req.user.id);
       return res.status(200).json({
         statusCode: 200,
+        msg: "You logged in successfully",
         data: accountFound,
       });
     } else {
@@ -59,6 +60,7 @@ router.get(
       const accountFound = await getBlogAccountById(req.user.id);
       return res.status(200).json({
         statusCode: 200,
+        msg: "You logged in successfully",
         data: accountFound,
       });
     } else {
