@@ -9,6 +9,8 @@ const Like = require("../models/Like");
 const BlogAccount = require("../models/BlogAccount");
 
 const { uploadProfileImage, deleteImage } = require("../utils/cloudinary");
+const fs = require("fs-extra");
+const fileUpload = require("express-fileupload");
 
 const {
   validateId,
@@ -77,7 +79,7 @@ router.get(
 
 // Get Logged in account
 router.get("/account", async (req, res) => {
-  if (req.user) {
+  if (req.user && req.user.isAdmin === false) {
     const blogAccount = await getBlogAccountById(req.user.id);
     return res.status(200).json({
       statusCode: 200,
@@ -86,7 +88,7 @@ router.get("/account", async (req, res) => {
   } else {
     return res.status(400).json({
       statusCode: 400,
-      msg: `No Blog Account logged in`,
+      msg: `No User Account logged in`,
     });
   }
 });
