@@ -28,6 +28,8 @@ afterAll((done) => {
   done();
 });
 
+let cookie;
+
 describe("POST /api/account route -> parameter validations", () => {
   it("it should return 400 status code -> password must be a string", async () => {
     const user = {
@@ -391,8 +393,77 @@ describe("POST /api/login route -> login process", () => {
       .get("/api/account")
       .set("Cookie", cookie);
     expect(response.status).toBe(400);
-    expect(response.body.msg).toBe("No Blog Account logged in");
+    expect(response.body.msg).toBe("No User Account logged in");
   });
+});
+
+describe("PUT /account/image route -> update user image", () => {
+  it("it should return 401 status code -> not authorize", async () => {
+    const response = await request(app).put("/api/account/image");
+    expect(response.status).toBe(401);
+    expect(response.body.msg).toBe("You are not authorized! Please login...");
+  });
+  it("it should return a 200 status code -> user logged in", async () => {
+    const user = {
+      email: "user2@fakeapis.io",
+      password: "F4k3ap1s.io",
+    };
+
+    const response = await request(app).post("/api/login").send(user);
+    expect(response.status).toBe(200);
+    expect(response.body.msg).toBe("You logged in successfully");
+    cookie = response.headers["set-cookie"];
+  });
+  it("it should return 400 status code -> image file is missing", async () => {
+    const response = await request(app)
+      .put(`/api/account/image`)
+      .set("Cookie", cookie);
+    expect(response.status).toBe(400);
+    expect(response.body.msg).toBe("Image file is missing!");
+  });
+  it("it should return 400 status code -> file type not allowed", async () => {
+    const response = await request(app)
+      .put(`/api/account/image`)
+      .set("Cookie", cookie)
+      .attach("image", `${__dirname}/files/file.txt`);
+    expect(response.status).toBe(400);
+    expect(response.body.msg).toBe(
+      "File format not allowed! Only JPG or PNG..."
+    );
+  });
+  it("it should return 400 status code -> file size not support", async () => {
+    const response = await request(app)
+      .put(`/api/account/image`)
+      .set("Cookie", cookie)
+      .attach("image", `${__dirname}/files/heavyimage.jpg`);
+    expect(response.status).toBe(400);
+    expect(response.body.msg).toBe("File must be up to 2mb!");
+  });
+  it("it should return 200 status code -> account image updated successfully", async () => {
+    const response = await request(app)
+      .put(`/api/account/image`)
+      .set("Cookie", cookie)
+      .attach("image", `${__dirname}/files/avatar1.png`);
+    expect(response.status).toBe(200);
+  });
+  it("it should return 200 status code -> account image updated successfully", async () => {
+    const response = await request(app)
+      .put(`/api/account/image`)
+      .set("Cookie", cookie)
+      .attach("image", `${__dirname}/files/avatar2.png`);
+    expect(response.status).toBe(200);
+  });
+  it("it should return a 200 status code -> logout process", async () => {
+    const response = await request(app)
+      .get("/api/logout")
+      .set("Cookie", cookie);
+    expect(response.status).toBe(200);
+    expect(response.body.msg).toBe("You successfully logged out!");
+  });
+  /*  
+ 
+ 
+  */
 });
 
 /* describe("POST /api/account route -> check if username exists", () => {
