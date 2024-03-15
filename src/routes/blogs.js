@@ -24,7 +24,11 @@ const {
   validateImageSize,
 } = require("../utils/index");
 
-const { getBlogAccountById, updateUserImage } = require("../controllers/blogs");
+const {
+  getBlogAccountById,
+  updateUserImage,
+  updateUsername,
+} = require("../controllers/blogs");
 
 const bcrypt = require("bcryptjs");
 
@@ -245,6 +249,67 @@ router.post("/account", async (req, res, next) => {
   }
 });
 
+// Update user account username
+router.put(
+  "/account/username",
+  ensureAuthenticatedUser,
+  async (req, res, next) => {
+    const { value } = req.query;
+
+    try {
+      if (!value) {
+        return res.status(400).json({
+          statusCode: 400,
+          msg: "Query parameter is missing!",
+        });
+      }
+
+      if (value.length < 4) {
+        return res.status(400).json({
+          statusCode: 400,
+          msg: "Username must be at least 4 characters long!",
+        });
+      }
+
+      const usernameExist = await BlogAccount.findOne({
+        where: {
+          username: {
+            [Op.iLike]: `@${value}`,
+          },
+        },
+      });
+
+      if (usernameExist) {
+        return res.status(400).json({
+          statusCode: 400,
+          msg: `Username "${value}" exists! Try with another one!`,
+        });
+      }
+
+      const updatedAccount = await updateUsername(
+        req.user.id,
+        `@${value.toLowerCase()}`
+      );
+
+      if (updatedAccount) {
+        await Notification.create({
+          blogAccountId: req.user.id,
+          text: "Your username was updated successfully!",
+        });
+
+        return res.status(200).json({
+          statusCode: 200,
+          msg: "Your username was updated successfully!",
+          data: updatedAccount,
+        });
+      }
+    } catch (error) {
+      console.log(error);
+      return next("Error trying to update user account username");
+    }
+  }
+);
+
 // Update user account image
 router.put(
   "/account/image",
@@ -355,29 +420,5 @@ router.delete(
     }
   }
 );
-
-/*     if (validateUsername(username)) {
-      return res.status(400).json({
-        statusCode: 400,
-        msg: validateUsername(username),
-      });
-    }
-
-    const usernameExist = await BlogAccount.findOne({
-      where: {
-        username: {
-          [Op.iLike]: `@${username}`,
-        },
-      },
-    });
-
-    if (usernameExist) {
-      return res.status(400).json({
-        statusCode: 400,
-        msg: `Username "${username}" exists! Try with another one!`,
-      });
-    } */
-
-// username: `@${username.toLowerCase()}`,
 
 module.exports = router;
