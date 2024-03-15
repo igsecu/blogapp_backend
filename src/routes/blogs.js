@@ -9,7 +9,7 @@ const Like = require("../models/Like");
 const BlogAccount = require("../models/BlogAccount");
 
 const { uploadProfileImage, deleteImage } = require("../utils/cloudinary");
-const fs = require("fs-extra");
+const fsExtra = require("fs-extra");
 const fileUpload = require("express-fileupload");
 
 const {
@@ -19,9 +19,12 @@ const {
   validateEmail,
   validatePasswordConfirmation,
   validateUsername,
+  ensureAuthenticatedAdmin,
+  ensureAuthenticatedUser,
+  validateImageSize,
 } = require("../utils/index");
 
-const { getBlogAccountById } = require("../controllers/blogs");
+const { getBlogAccountById, updateUserImage } = require("../controllers/blogs");
 
 const bcrypt = require("bcryptjs");
 
@@ -241,6 +244,68 @@ router.post("/account", async (req, res, next) => {
     return next("Error trying to create a new account");
   }
 });
+
+// Update user account image
+router.put(
+  "/account/image",
+  ensureAuthenticatedUser,
+  fileUpload({
+    useTempFiles: true,
+    tempFileDir: `${__dirname}/../../uploads`,
+  }),
+  async (req, res, next) => {
+    try {
+      if (req.files?.image) {
+        if (await validateFileType(req.files.image.tempFilePath)) {
+          const message = await validateFileType(req.files.image.tempFilePath);
+
+          await fsExtra.unlink(req.files.image.tempFilePath);
+
+          return res.status(400).json({
+            statusCode: 400,
+            msg: message,
+          });
+        }
+
+        if (await validateImageSize(req.files.image.tempFilePath)) {
+          const message = await validateImageSize(req.files.image.tempFilePath);
+
+          await fsExtra.unlink(req.files.image.tempFilePath);
+
+          return res.status(400).json({
+            statusCode: 400,
+            msg: message,
+          });
+        }
+
+        const result = await uploadProfileImage(req.files.image.tempFilePath);
+
+        await fsExtra.unlink(req.files.image.tempFilePath);
+
+        const userUpdated = await updateUserImage(
+          req.user.id,
+          result.secure_url,
+          result.public_id
+        );
+
+        return res.status(200).json({
+          statusCode: 200,
+          msg: "Your profile image was updated successfully!",
+          data: userUpdated,
+        });
+      } else {
+        return res.status(400).json({
+          statusCode: 400,
+          msg: "Image file is missing!",
+        });
+      }
+    } catch (error) {
+      await fsExtra.unlink(req.files.image.tempFilePath);
+      console.log(error.message);
+      return next(error);
+    }
+  }
+);
 
 /*     if (validateUsername(username)) {
       return res.status(400).json({
