@@ -67,6 +67,27 @@ const validateVideoFileType = (file) => {
   });
 };
 
+const validateImageSize = (file) => {
+  return new Promise((resolve, reject) => {
+    fs.stat(file, (err, stats) => {
+      if (err) {
+        reject(err);
+        return;
+      }
+
+      const fileSizeInBytes = stats.size;
+
+      const fileSizeInMb = fileSizeInBytes / (1024 * 1024);
+
+      if (fileSizeInMb > 2) {
+        resolve("File must be up to 2mb!");
+      }
+
+      return resolve(false);
+    });
+  });
+};
+
 // Validates password
 const validatePassword = (password) => {
   if (!password) return "Password is missing";
@@ -117,12 +138,12 @@ const validateUsername = (username) => {
 // Access Control User
 const ensureAuthenticatedUser = (req, res, next) => {
   if (req.isAuthenticated()) {
-    if (req.user.type === "USER") {
+    if (req.user.isAdmin === false) {
       next();
     } else {
       return res.status(401).json({
         statusCode: 401,
-        msg: `You are not authorized! Please login with a User account...`,
+        msg: `You are not authorized! Please login with an User account...`,
       });
     }
   } else {
@@ -298,4 +319,5 @@ module.exports = {
   validateUsername,
   ensureAuthenticatedUser,
   ensureAuthenticatedAdmin,
+  validateImageSize,
 };
