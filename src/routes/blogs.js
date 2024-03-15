@@ -288,6 +288,11 @@ router.put(
           result.public_id
         );
 
+        await Notification.create({
+          blogAccountId: req.user.id,
+          text: "Your profile image was updated successfully!",
+        });
+
         return res.status(200).json({
           statusCode: 200,
           msg: "Your profile image was updated successfully!",
@@ -303,6 +308,50 @@ router.put(
       await fsExtra.unlink(req.files.image.tempFilePath);
       console.log(error.message);
       return next(error);
+    }
+  }
+);
+
+// Delete user account image
+router.delete(
+  "/account/image",
+  ensureAuthenticatedUser,
+  async (req, res, next) => {
+    try {
+      const account = await BlogAccount.findByPk(req.user.id);
+
+      if (account.image_id === null) {
+        return res.status(400).json({
+          statusCode: 400,
+          msg: "You do not have a profile image to delete!",
+        });
+      }
+
+      await deleteImage(account.image_id);
+
+      const updatedAccount = await BlogAccount.update(
+        {
+          image: null,
+          image_id: null,
+        },
+        {
+          where: {
+            id: req.user.id,
+          },
+        }
+      );
+
+      if (updatedAccount[0] === 1) {
+        const account = await getBlogAccountById(id);
+
+        return res.status(200).json({
+          statusCode: 200,
+          msg: "Profile image delete successfully!",
+          data: account,
+        });
+      }
+    } catch (error) {
+      return next("Error trying to delete profile account user image");
     }
   }
 );
