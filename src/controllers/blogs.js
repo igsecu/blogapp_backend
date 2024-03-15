@@ -74,7 +74,33 @@ const updateUserImage = async (id, image, image_id) => {
   }
 };
 
+// Update user account username
+const updateUsername = async (id, username) => {
+  try {
+    const updatedAccount = await BlogAccount.update(
+      {
+        username,
+      },
+      {
+        where: {
+          id,
+        },
+      }
+    );
+
+    if (updatedAccount[0] === 1) {
+      const account = await getBlogAccountById(id);
+
+      return account;
+    }
+  } catch (error) {
+    console.log(error.message);
+    throw new Error("Error trying to update the user account username!");
+  }
+};
+
 module.exports = {
   getBlogAccountById,
   updateUserImage,
+  updateUsername,
 };
