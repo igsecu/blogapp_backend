@@ -1,6 +1,7 @@
 const LocalStrategy = require("passport-local").Strategy;
 
 const BlogAccount = require("../models/BlogAccount");
+const Notification = require("../models/Notification");
 
 const bcrypt = require("bcryptjs");
 
@@ -103,6 +104,11 @@ module.exports = (passport) => {
                 type: "GOOGLE",
               });
               if (accountCreated) {
+                await Notification.create({
+                  blogAccountId: accountCreated.id,
+                  text: "Your account was created successfully!",
+                });
+
                 return done(null, accountCreated);
               }
             }
@@ -149,6 +155,10 @@ module.exports = (passport) => {
               type: "GITHUB",
             });
             if (accountCreated) {
+              await Notification.create({
+                blogAccountId: accountCreated.id,
+                text: "Your account was created successfully!",
+              });
               return done(null, accountCreated);
             }
           }
