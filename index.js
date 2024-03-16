@@ -17,6 +17,7 @@ const Like = require("./src/models/Like");
 const Notification = require("./src/models/Notification");
 const Post = require("./src/models/Post");
 const BlogAccount = require("./src/models/BlogAccount");
+const Token = require("./src/models/Token");
 
 BlogAccount.hasMany(Blog);
 Blog.belongsTo(BlogAccount);
@@ -38,6 +39,9 @@ Comment.belongsTo(Post);
 
 BlogAccount.hasMany(Comment);
 Comment.belongsTo(BlogAccount);
+
+BlogAccount.hasOne(Token);
+Token.belongsTo(BlogAccount);
 
 // Body-Parser middleware
 app.use(express.json());
