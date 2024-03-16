@@ -398,7 +398,7 @@ describe("POST /api/login route -> login process", () => {
 });
 
 describe("PUT /account/image route -> update user image", () => {
-  it("it should return 401 status code -> not authorize", async () => {
+  it("it should return 401 status code -> not authorized", async () => {
     const response = await request(app).put("/api/account/image");
     expect(response.status).toBe(401);
     expect(response.body.msg).toBe("You are not authorized! Please login...");
@@ -466,57 +466,130 @@ describe("PUT /account/image route -> update user image", () => {
   */
 });
 
-/* describe("POST /api/account route -> check if username exists", () => {
-    it("it should return a 400 status code -> username exists", async () => {
+describe("DELETE /account/image route -> delete user image", () => {
+  it("it should return 401 status code -> not authorized", async () => {
+    const response = await request(app).delete("/api/account/image");
+    expect(response.status).toBe(401);
+  });
+  it("it should return a 200 status code -> user logged in", async () => {
+    const user = {
+      email: "user1@fakeapis.io",
+      password: "F4k3ap1s.io",
+    };
+
+    const response = await request(app).post("/api/login").send(user);
+    expect(response.status).toBe(200);
+    expect(response.body.msg).toBe("You logged in successfully");
+    cookie = response.headers["set-cookie"];
+  });
+  it("it should return 400 status code -> no image", async () => {
+    const response = await request(app)
+      .delete("/api/account/image")
+      .set("Cookie", cookie);
+    expect(response.status).toBe(400);
+  });
+  it("it should return a 200 status code -> logout process", async () => {
+    const response = await request(app)
+      .get("/api/logout")
+      .set("Cookie", cookie);
+    expect(response.status).toBe(200);
+    expect(response.body.msg).toBe("You successfully logged out!");
+  });
+  /*   it("it should return a 200 status code -> user logged in", async () => {
       const user = {
-        email: "user4@fakeapis.io",
-        password: "Password14!",
-        password2: "Password14!",
-        username: "user1",
+        email: "user2@fakeapis.io",
+        password: "F4k3ap1s.io",
       };
   
-      const response = await request(app).post("/api/account").send(user);
-      expect(response.status).toBe(400);
-      expect(response.body.msg).toBe(
-        `Username "user1" exists! Try with another one!`
-      );
+      const response = await request(app).post("/api/login").send(user);
+      expect(response.status).toBe(200);
+      expect(response.body.msg).toBe("You logged in successfully");
+      cookie = response.headers["set-cookie"];
     });
-  }); */
+    it("it should return 200 status code -> delete image success", async () => {
+      const response = await request(app)
+        .delete("/api/account/image")
+        .set("Cookie", cookie);
+      expect(response.status).toBe(200);
+    });
+    it("it should return a 200 status code -> logout process", async () => {
+      const response = await request(app)
+        .get("/api/logout")
+        .set("Cookie", cookie);
+      expect(response.status).toBe(200);
+      expect(response.body.msg).toBe("You successfully logged out!");
+    }); */
+});
 
-/* it("it should return 400 status code -> username parameter is missing", async () => {
-    const user = {
-      email: "newaccount@email.com",
-      password: "Password14!",
-      password2: "Password14!",
-    };
-
-    const response = await request(app).post("/api/account").send(user);
-    expect(response.status).toBe(400);
-    expect(response.body.msg).toBe("Username is missing");
+describe("PUT /account/username route -> update user username", () => {
+  it("it should return 401 status code -> not authorized", async () => {
+    const response = await request(app).put("/api/account/username");
+    expect(response.status).toBe(401);
   });
-  it("it should return 400 status code -> username must be a string", async () => {
+  it("it should return a 200 status code -> user logged in", async () => {
     const user = {
-      email: "newaccount@email.com",
-      password: "Password14!",
-      password2: "Password14!",
-      username: 1234,
+      email: "user1@fakeapis.io",
+      password: "F4k3ap1s.io",
     };
 
-    const response = await request(app).post("/api/account").send(user);
-    expect(response.status).toBe(400);
-    expect(response.body.msg).toBe("Username must be a string");
+    const response = await request(app).post("/api/login").send(user);
+    expect(response.status).toBe(200);
+    expect(response.body.msg).toBe("You logged in successfully");
+    cookie = response.headers["set-cookie"];
   });
-  it("it should return 400 status code -> username must be 4 characters long", async () => {
-    const user = {
-      email: "newaccount@email.com",
-      password: "Password14!",
-      password2: "Password14!",
-      username: "123",
-    };
-
-    const response = await request(app).post("/api/account").send(user);
+  it("it should return 400 status code -> username is missing", async () => {
+    const response = await request(app)
+      .put("/api/account/username")
+      .set("Cookie", cookie);
+    expect(response.status).toBe(400);
+    expect(response.body.msg).toBe("Query parameter is missing!");
+  });
+  it("it should return 400 status code -> username is short", async () => {
+    const response = await request(app)
+      .put("/api/account/username?value=use")
+      .set("Cookie", cookie);
     expect(response.status).toBe(400);
     expect(response.body.msg).toBe(
-      "Username must be at least 4 characters long"
+      "Username must be at least 4 characters long!"
     );
-  }); */
+  });
+  /*  it("it should return 200 status code -> username updated", async () => {
+      const response = await request(app)
+        .put("/api/account/username?value=user2")
+        .set("Cookie", cookie);
+      expect(response.status).toBe(200);
+    }); */
+  it("it should return a 200 status code -> logout process", async () => {
+    const response = await request(app)
+      .get("/api/logout")
+      .set("Cookie", cookie);
+    expect(response.status).toBe(200);
+    expect(response.body.msg).toBe("You successfully logged out!");
+  });
+});
+
+describe("DELETE /account route -> delete account", () => {
+  it("it should return 401 status code -> not authorized", async () => {
+    const response = await request(app).delete("/api/account");
+    expect(response.status).toBe(401);
+    expect(response.body.msg).toBe("You are not authorized! Please login...");
+  });
+  it("it should return a 200 status code -> user logged in", async () => {
+    const user = {
+      email: "user2@fakeapis.io",
+      password: "F4k3ap1s.io",
+    };
+
+    const response = await request(app).post("/api/login").send(user);
+    expect(response.status).toBe(200);
+    expect(response.body.msg).toBe("You logged in successfully");
+    cookie = response.headers["set-cookie"];
+  });
+  it("it should return 200 status code -> account deleted", async () => {
+    const response = await request(app)
+      .delete("/api/account")
+      .set("Cookie", cookie);
+    console.log(response.body);
+    expect(response.status).toBe(200);
+  });
+});
