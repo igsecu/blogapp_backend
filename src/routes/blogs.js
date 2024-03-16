@@ -421,4 +421,35 @@ router.delete(
   }
 );
 
+// Delete user account image
+router.delete("/account", ensureAuthenticatedUser, async (req, res, next) => {
+  try {
+    const account = await BlogAccount.findByPk(req.user.id);
+
+    const deletedAccount = await BlogAccount.destroy({
+      where: {
+        id: req.user.id,
+      },
+    });
+
+    if (deletedAccount) {
+      if (account.image_id !== null) {
+        await deleteImage(account.image_id);
+      }
+
+      req.logout((err) => {
+        if (err) return next(err);
+
+        return res.status(200).json({
+          statusCode: 200,
+          msg: "Account deleted successfully!",
+        });
+      });
+    }
+  } catch (error) {
+    console.log(error.message);
+    return next("Error trying to delete user account");
+  }
+});
+
 module.exports = router;
