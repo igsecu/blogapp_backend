@@ -42,6 +42,8 @@ const {
   updatePostText,
   updatePostTitle,
   updatePostImage,
+  getBlogPosts,
+  getAccountBlogs,
 } = require("../controllers/blogs");
 
 const bcrypt = require("bcryptjs");
@@ -1248,6 +1250,22 @@ router.delete("/blog/:id", ensureAuthenticatedUser, async (req, res, next) => {
       });
     }
 
+    const results = await getBlogPosts(id);
+
+    for (let r of results) {
+      const post = await Post.findByPk(r.id);
+
+      if (post.image_id !== null) {
+        await deleteImage(post.image_id);
+      }
+
+      await Post.destroy({
+        where: {
+          id: r.id,
+        },
+      });
+    }
+
     const deletedBlog = await Blog.destroy({
       where: {
         id,
@@ -1320,6 +1338,31 @@ router.delete(
 router.delete("/account", ensureAuthenticatedUser, async (req, res, next) => {
   try {
     const account = await BlogAccount.findByPk(req.user.id);
+
+    const blogs = await getAccountBlogs(req.user.id);
+
+    for (b of blogs) {
+      const results = await getBlogPosts(b.id);
+
+      for (let r of results) {
+        const post = await Post.findByPk(r.id);
+
+        if (post.image_id !== null) {
+          await deleteImage(post.image_id);
+        }
+
+        await Post.destroy({
+          where: {
+            id: r.id,
+          },
+        });
+      }
+      await Blog.destroy({
+        where: {
+          id: b.id,
+        },
+      });
+    }
 
     const deletedAccount = await BlogAccount.destroy({
       where: {
