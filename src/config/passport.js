@@ -111,7 +111,7 @@ module.exports = (passport) => {
               if (accountCreated) {
                 const account = await getBlogAccountById(accountCreated.id);
 
-                const url = `http://localhost:5000/account/${account.id}/verify`;
+                const url = `http://localhost:5000/api/account/${account.id}/verify`;
 
                 const msg = {
                   to: account.email,
@@ -175,7 +175,7 @@ module.exports = (passport) => {
             if (accountCreated) {
               const account = await getBlogAccountById(accountCreated.id);
 
-              const url = `http://localhost:5000/account/${account.id}/verify`;
+              const url = `http://localhost:5000/api/account/${account.id}/verify`;
 
               const msg = {
                 to: account.email,
