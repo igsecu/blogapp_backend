@@ -17,6 +17,12 @@ const uploadProfileImage = async (filePath) => {
   });
 };
 
+const uploadPostImage = async (filePath) => {
+  return await cloudinary.uploader.upload(filePath, {
+    folder: "/blog_app/posts",
+  });
+};
+
 const deleteImage = async (image_id) => {
   return await cloudinary.uploader.destroy(image_id);
 };
@@ -24,4 +30,5 @@ const deleteImage = async (image_id) => {
 module.exports = {
   uploadProfileImage,
   deleteImage,
+  uploadPostImage,
 };
