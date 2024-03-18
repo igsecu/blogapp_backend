@@ -28,6 +28,7 @@ const {
   getBlogAccountById,
   updateUserImage,
   updateUsername,
+  updateIsVerifiedAccount,
 } = require("../controllers/blogs");
 
 const bcrypt = require("bcryptjs");
@@ -88,6 +89,55 @@ router.get(
   "/auth/google",
   passport.authenticate("google", { scope: ["profile", "email"] })
 );
+
+// Get Logged in account
+router.get("/account/:id/verify", async (req, res, next) => {
+  const { id } = req.params;
+
+  try {
+    if (!validateId(id)) {
+      return res.status(400).json({
+        statusCode: 400,
+        msg: `ID: ${id} - Invalid format!`,
+      });
+    }
+
+    const accountFound = await getBlogAccountById(id);
+
+    if (!accountFound) {
+      return res.status(400).json({
+        statusCode: 400,
+        msg: `Account with ID: ${id} not found!`,
+      });
+    }
+
+    if (accountFound.isBanned === true) {
+      return res.status(400).json({
+        statusCode: 400,
+        msg: "This account is banned! You can not verify it...",
+      });
+    }
+
+    if (accountFound.isVerified === true) {
+      return res.status(400).json({
+        statusCode: 400,
+        msg: "This account is already verified!",
+      });
+    }
+
+    const updatedAccount = await updateIsVerifiedAccount(id);
+
+    if (updatedAccount) {
+      return res.status(200).json({
+        statusCode: 200,
+        msg: "Your account is now verified!",
+        data: updatedAccount,
+      });
+    }
+  } catch (error) {
+    return next(error);
+  }
+});
 
 // Get Logged in account
 router.get("/account", async (req, res) => {
@@ -232,7 +282,7 @@ router.post("/account", async (req, res, next) => {
           if (accountCreated) {
             const account = await getBlogAccountById(accountCreated.id);
 
-            const url = `http://localhost:5000/account/${account.id}/verify`;
+            const url = `http://localhost:5000/api/account/${account.id}/verify`;
 
             const msg = {
               to: account.email,
