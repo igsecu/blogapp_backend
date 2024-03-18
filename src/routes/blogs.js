@@ -36,6 +36,11 @@ const { Op } = require("sequelize");
 
 const passport = require("passport");
 
+require("dotenv").config();
+
+const sgMail = require("@sendgrid/mail");
+sgMail.setApiKey(process.env.SENDGRID_API_KEY);
+
 // Github Callback
 router.get(
   "/auth/github/callback",
@@ -226,6 +231,17 @@ router.post("/account", async (req, res, next) => {
 
           if (accountCreated) {
             const account = await getBlogAccountById(accountCreated.id);
+
+            const url = `http://localhost:5000/account/${account.id}/verify`;
+
+            const msg = {
+              to: account.email,
+              from: process.env.SENDGRID_SENDER,
+              subject: "Verify your account",
+              html: `<html><a href=${url}>${url}</a></html>`,
+            };
+
+            await sgMail.send(msg);
 
             await Notification.create({
               blogAccountId: account.id,
