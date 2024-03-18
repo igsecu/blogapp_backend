@@ -176,6 +176,140 @@ router.get("/logout", (req, res, next) => {
   });
 });
 
+router.post("/reset/password", async (req, res, next) => {
+  const { token, accountId, password, password2 } = req.body;
+
+  try {
+    if (!accountId) {
+      return res.status(400).json({
+        statusCode: 400,
+        msg: "accountId is missing",
+      });
+    }
+
+    if (!validateId(accountId)) {
+      return res.status(400).json({
+        statusCode: 400,
+        msg: `accountId: ${accountId} - Invalid format!`,
+      });
+    }
+
+    const account = await getBlogAccountById(accountId);
+
+    if (!account) {
+      return res.status(404).json({
+        statusCode: 404,
+        msg: `Account with ID: ${accountId} not found!`,
+      });
+    }
+
+    if (account.isBanned === true) {
+      return res.status(400).json({
+        statusCode: 400,
+        msg: "This account is banned! You can not reset its password...",
+      });
+    }
+
+    const tokenExists = await Token.findOne({
+      where: {
+        blogAccountId: accountId,
+      },
+    });
+
+    if (!tokenExists) {
+      return res.status(404).json({
+        statusCode: 404,
+        msg: `Token for the account: ${accountId} not found!`,
+      });
+    }
+
+    if (tokenExists.dataValues.token !== token) {
+      return res.status(400).json({
+        statusCode: 400,
+        msg: "Invalid token!",
+      });
+    }
+
+    const tokenTime = tokenExists.dataValues.createdAt.getTime();
+    const expireTime = tokenTime + 3600 * 1000;
+
+    const currentTime = new Date().getTime();
+
+    if (currentTime >= expireTime) {
+      return res.status(400).json({
+        statusCode: 400,
+        msg: "Token time expired!",
+      });
+    }
+
+    if (validatePassword(password)) {
+      return res.status(400).json({
+        statusCode: 400,
+        msg: validatePassword(password),
+      });
+    }
+
+    if (validatePasswordConfirmation(password, password2)) {
+      return res.status(400).json({
+        statusCode: 400,
+        msg: validatePasswordConfirmation(password, password2),
+      });
+    }
+
+    // Hash Password
+    bcrypt.genSalt(10, (err, salt) => {
+      bcrypt.hash(password, salt, async (err, hash) => {
+        if (err) {
+          return next("Error trying to reset password");
+        }
+        try {
+          const updatedAccount = await BlogAccount.update(
+            {
+              password: hash,
+            },
+            {
+              where: {
+                id: accountId,
+              },
+            }
+          );
+
+          if (updatedAccount[0] === 1) {
+            const account = await getBlogAccountById(accountId);
+
+            const msg = {
+              to: account.email,
+              from: process.env.SENDGRID_SENDER,
+              subject: "Reset Password Confirmation",
+              html: `<html><p>Your password was reseted successfully!</p></html>`,
+            };
+
+            await sgMail.send(msg);
+
+            await Token.destroy({
+              where: {
+                blogAccountId: accountId,
+              },
+            });
+
+            return res.status(200).json({
+              statusCode: 200,
+              data: account,
+              msg: "Password reseted successfully!",
+            });
+          }
+        } catch (error) {
+          console.log(error.message);
+          return next("Error trying to reset user account password");
+        }
+      });
+    });
+  } catch (error) {
+    console.log(error);
+    return next(error);
+  }
+});
+
 router.post("/request/password", async (req, res, next) => {
   const { email } = req.body;
 
@@ -219,30 +353,30 @@ router.post("/request/password", async (req, res, next) => {
           id: tokenExist.dataValues.id,
         },
       });
-
-      const newToken = await Token.create({
-        blogAccountId: emailExist.dataValues.id,
-        token: uuid.v4(),
-      });
-
-      const url = `http://localhost:5000/api/account/reset/password?token=${token}&accounId=${emailExist.dataValues.id}`;
-
-      const msg = {
-        to: email,
-        from: process.env.SENDGRID_SENDER,
-        subject: "Reset Password",
-        html: `<html><a href=${url}>${url}</a></html>`,
-      };
-
-      await sgMail.send(msg);
-
-      return res.status(200).json({
-        statusCode: 200,
-        msg: "Check your email to reset your password!",
-        token,
-        accountId: emailExist.dataValues.id,
-      });
     }
+
+    const newToken = await Token.create({
+      blogAccountId: emailExist.dataValues.id,
+      token: uuid.v4(),
+    });
+
+    /* const url = `http://localhost:5000/api/account/reset/password?token=${newToken.token}&accounId=${emailExist.dataValues.id}`;
+
+    const msg = {
+      to: email,
+      from: process.env.SENDGRID_SENDER,
+      subject: "Reset Password",
+      html: `<html><a href=${url}>${url}</a></html>`,
+    };
+
+    await sgMail.send(msg); */
+
+    return res.status(200).json({
+      statusCode: 200,
+      msg: "Check your email to reset your password!",
+      token: newToken.token,
+      accountId: emailExist.dataValues.id,
+    });
   } catch (error) {
     return next("Error sending link to reset password");
   }
