@@ -41,6 +41,7 @@ const {
   getPostById,
   updatePostText,
   updatePostTitle,
+  updatePostImage,
 } = require("../controllers/blogs");
 
 const bcrypt = require("bcryptjs");
@@ -728,6 +729,99 @@ router.post("/account", async (req, res, next) => {
     return next("Error trying to create a new account");
   }
 });
+
+// Update user account image
+router.put(
+  "/post/:id/image",
+  ensureAuthenticatedUser,
+  fileUpload({
+    useTempFiles: true,
+    tempFileDir: `${__dirname}/../../uploads`,
+  }),
+  async (req, res, next) => {
+    const { id } = req.params;
+    try {
+      if (!validateId(id)) {
+        return res.status(400).json({
+          statusCode: 400,
+          msg: `ID: ${id} - Invalid format!`,
+        });
+      }
+
+      const post = await getPostById(id);
+
+      if (!post) {
+        return res.status(404).json({
+          statusCode: 404,
+          msg: `Post with ID: ${id} not found!`,
+        });
+      }
+
+      if (post.blog.account.id !== req.user.id) {
+        return res.status(400).json({
+          statusCode: 400,
+          msg: "You can not update a post that is not yours!",
+        });
+      }
+
+      if (post.isBanned === true) {
+        return res.status(400).json({
+          statusCode: 400,
+          msg: "This post is banned! You can not update it...",
+        });
+      }
+
+      if (req.files?.image) {
+        if (await validateFileType(req.files.image.tempFilePath)) {
+          const message = await validateFileType(req.files.image.tempFilePath);
+
+          await fsExtra.unlink(req.files.image.tempFilePath);
+
+          return res.status(400).json({
+            statusCode: 400,
+            msg: message,
+          });
+        }
+
+        if (await validateImageSize(req.files.image.tempFilePath)) {
+          const message = await validateImageSize(req.files.image.tempFilePath);
+
+          await fsExtra.unlink(req.files.image.tempFilePath);
+
+          return res.status(400).json({
+            statusCode: 400,
+            msg: message,
+          });
+        }
+
+        const result = await uploadPostImage(req.files.image.tempFilePath);
+
+        await fsExtra.unlink(req.files.image.tempFilePath);
+
+        const postUpdated = await updatePostImage(
+          id,
+          result.secure_url,
+          result.public_id
+        );
+
+        return res.status(200).json({
+          statusCode: 200,
+          msg: "Post image was updated successfully!",
+          data: postUpdated,
+        });
+      } else {
+        return res.status(400).json({
+          statusCode: 400,
+          msg: "Image file is missing!",
+        });
+      }
+    } catch (error) {
+      await fsExtra.unlink(req.files.image.tempFilePath);
+      console.log(error.message);
+      return next(error);
+    }
+  }
+);
 
 // Update post
 router.put("/post/:id", ensureAuthenticatedUser, async (req, res, next) => {
