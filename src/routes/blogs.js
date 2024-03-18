@@ -40,7 +40,10 @@ const passport = require("passport");
 require("dotenv").config();
 
 const sgMail = require("@sendgrid/mail");
+const Token = require("../models/Token");
 sgMail.setApiKey(process.env.SENDGRID_API_KEY);
+
+const uuid = require("uuid");
 
 // Github Callback
 router.get(
@@ -171,6 +174,78 @@ router.get("/logout", (req, res, next) => {
       msg: "You successfully logged out!",
     });
   });
+});
+
+router.post("/request/password", async (req, res, next) => {
+  const { email } = req.body;
+
+  try {
+    if (validateEmail(email)) {
+      return res.status(400).json({
+        statusCode: 400,
+        msg: validateEmail(email),
+      });
+    }
+
+    const emailExist = await BlogAccount.findOne({
+      where: {
+        email,
+      },
+    });
+
+    if (!emailExist) {
+      return res.status(404).json({
+        statusCode: 404,
+        msg: `No user account with email: ${email} exists!`,
+      });
+    }
+
+    if (emailExist.dataValues.isBanned === true) {
+      return res.status(400).json({
+        statusCode: 400,
+        msg: "This account is banned! You can not reset your password...",
+      });
+    }
+
+    const tokenExist = await Token.findOne({
+      where: {
+        blogAccountId: emailExist.dataValues.id,
+      },
+    });
+
+    if (tokenExist) {
+      await Token.destroy({
+        where: {
+          id: tokenExist.dataValues.id,
+        },
+      });
+
+      const newToken = await Token.create({
+        blogAccountId: emailExist.dataValues.id,
+        token: uuid.v4(),
+      });
+
+      const url = `http://localhost:5000/api/account/reset/password?token=${token}&accounId=${emailExist.dataValues.id}`;
+
+      const msg = {
+        to: email,
+        from: process.env.SENDGRID_SENDER,
+        subject: "Reset Password",
+        html: `<html><a href=${url}>${url}</a></html>`,
+      };
+
+      await sgMail.send(msg);
+
+      return res.status(200).json({
+        statusCode: 200,
+        msg: "Check your email to reset your password!",
+        token,
+        accountId: emailExist.dataValues.id,
+      });
+    }
+  } catch (error) {
+    return next("Error sending link to reset password");
+  }
 });
 
 // Login route
