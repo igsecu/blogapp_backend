@@ -135,6 +135,14 @@ const validateUsername = (username) => {
   return false;
 };
 
+// Validates name
+const validateName = (name) => {
+  // if (text === 0) return "Name must be a string";
+  if (!name) return "Name is missing";
+  if (typeof name !== "string") return "Name must be a string";
+  return false;
+};
+
 // Access Control User
 const ensureAuthenticatedUser = (req, res, next) => {
   if (req.isAuthenticated()) {
