@@ -11,6 +11,7 @@
   "author": "igsecu",
   "license": "ISC",
   "dependencies": {
+    "@sendgrid/mail": "^8.1.1",
     "bcryptjs": "^2.4.3",
     "cloudinary": "^2.0.3",
     "dotenv": "^16.4.5",
