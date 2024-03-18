@@ -318,6 +318,69 @@ const updatePostImage = async (id, image, image_id) => {
   }
 };
 
+// Get Blog Posts
+const getBlogPosts = async (id) => {
+  const array = [];
+  try {
+    const results = await Post.findAll({
+      include: {
+        model: Blog,
+        where: {
+          id,
+        },
+      },
+    });
+
+    if (results) {
+      results.forEach((r) => {
+        array.push({
+          id: r.id,
+          title: r.title,
+          text: r.text,
+          isBanned: r.isBanned,
+          readers: r.readers,
+          comments_number: r.comments_number,
+          likes_number: r.likes_number,
+          image: r.image,
+        });
+      });
+    }
+
+    return array;
+  } catch (error) {
+    throw new Error("Error trying to get all blog posts");
+  }
+};
+
+// Get account blogs
+const getAccountBlogs = async (id) => {
+  const array = [];
+  try {
+    const results = await Blog.findAll({
+      include: {
+        model: BlogAccount,
+        where: {
+          id,
+        },
+      },
+    });
+
+    if (results) {
+      results.forEach((r) => {
+        array.push({
+          id: r.id,
+          name: r.name,
+          isBanned: r.isBanned,
+        });
+      });
+    }
+
+    return array;
+  } catch (error) {
+    throw new Error("Error trying to get all account blogs");
+  }
+};
+
 module.exports = {
   getBlogAccountById,
   updateUserImage,
@@ -329,4 +392,6 @@ module.exports = {
   updatePostText,
   updatePostTitle,
   updatePostImage,
+  getBlogPosts,
+  getAccountBlogs,
 };
