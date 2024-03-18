@@ -557,3 +557,44 @@ describe("PUT /post/:id route -> update post", () => {
   });
 });
  */
+
+/* describe("DELETE /post/:id/image route -> delete post image", () => {
+  it("it should return 401 status code -> not authorized", async () => {
+    const response = await request(app).delete("/api/post/1/image");
+    expect(response.status).toBe(401);
+    expect(response.body.msg).toBe("You are not authorized! Please login...");
+  });
+  it("it should return 200 status code -> user logged in", async () => {
+    const user = {
+      email: "user1@fakeapis.io",
+      password: "F4k3ap1s.io",
+    };
+
+    const response = await request(app).post("/api/login").send(user);
+    expect(response.status).toBe(200);
+    expect(response.body.msg).toBe("You logged in successfully");
+    cookie = response.headers["set-cookie"];
+  });
+  it("it should return 400 status code -> no image", async () => {
+    const response = await request(app)
+      .delete("/api/post/568a9c81-9c16-48b0-a967-f3e52e7798d9/image")
+      .set("Cookie", cookie);
+    expect(response.status).toBe(400);
+    expect(response.body.msg).toBe(
+      "The post does not have an image to delete!"
+    );
+  });
+  it("it should return 200 status code -> image deleted", async () => {
+    const response = await request(app)
+      .delete("/api/post/b0dc6fa8-9ef9-4d0f-a771-cfd358d15e81/image")
+      .set("Cookie", cookie);
+    expect(response.status).toBe(200);
+  });
+  it("it should return a 200 status code -> logout process", async () => {
+    const response = await request(app)
+      .get("/api/logout")
+      .set("Cookie", cookie);
+    expect(response.status).toBe(200);
+    expect(response.body.msg).toBe("You successfully logged out!");
+  });
+}); */
