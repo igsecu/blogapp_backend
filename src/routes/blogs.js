@@ -1163,6 +1163,63 @@ router.delete(
   }
 );
 
+// Delete post
+router.delete("/post/:id", ensureAuthenticatedUser, async (req, res, next) => {
+  const { id } = req.params;
+
+  try {
+    if (!validateId(id)) {
+      return res.status(400).json({
+        statusCode: 400,
+        msg: `ID: ${id} - Invalid format!`,
+      });
+    }
+
+    const post = await getPostById(id);
+
+    if (!post) {
+      return res.status(404).json({
+        statusCode: 404,
+        msg: `Post with ID: ${id} not found!`,
+      });
+    }
+
+    if (post.blog.account.id !== req.user.id) {
+      return res.status(400).json({
+        statusCode: 400,
+        msg: "You can not delete a post that is not yours!",
+      });
+    }
+
+    const postToDelete = await Post.findByPk(id);
+
+    const deletedPost = await Post.destroy({
+      where: {
+        id,
+      },
+    });
+
+    if (deletedPost) {
+      if (postToDelete.image_id !== null) {
+        await deleteImage(postToDelete.image_id);
+      }
+
+      await Notification.create({
+        blogAccountId: req.user.id,
+        text: `Post: ${post.title} was deleted successfully!`,
+      });
+
+      return res.status(200).json({
+        statusCode: 200,
+        msg: "Post deleted successfully!",
+        data: post,
+      });
+    }
+  } catch (error) {
+    return next("Error trying to delete a post");
+  }
+});
+
 // Delete blog
 router.delete("/blog/:id", ensureAuthenticatedUser, async (req, res, next) => {
   const { id } = req.params;
@@ -1196,8 +1253,6 @@ router.delete("/blog/:id", ensureAuthenticatedUser, async (req, res, next) => {
         id,
       },
     });
-
-    console.log(deletedBlog);
 
     if (deletedBlog) {
       await Notification.create({
