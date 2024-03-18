@@ -29,7 +29,6 @@
     "uuid": "^9.0.1"
   },
   "devDependencies": {
-    "nodemon": "^3.1.0",
-    "zombie": "^6.1.4"
+    "nodemon": "^3.1.0"
   }
 }
