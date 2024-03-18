@@ -10,6 +10,11 @@ const { getBlogAccountById } = require("../controllers/blogs");
 const GoogleStrategy = require("passport-google-oauth20").Strategy;
 const GithubStrategy = require("passport-github2").Strategy;
 
+require("dotenv").config();
+
+const sgMail = require("@sendgrid/mail");
+sgMail.setApiKey(process.env.SENDGRID_API_KEY);
+
 module.exports = (passport) => {
   passport.use(
     new LocalStrategy(
@@ -104,6 +109,19 @@ module.exports = (passport) => {
                 type: "GOOGLE",
               });
               if (accountCreated) {
+                const account = await getBlogAccountById(accountCreated.id);
+
+                const url = `http://localhost:5000/account/${account.id}/verify`;
+
+                const msg = {
+                  to: account.email,
+                  from: process.env.SENDGRID_SENDER,
+                  subject: "Verify your account",
+                  html: `<html><a href=${url}>${url}</a></html>`,
+                };
+
+                await sgMail.send(msg);
+
                 await Notification.create({
                   blogAccountId: accountCreated.id,
                   text: "Your account was created successfully!",
@@ -155,6 +173,19 @@ module.exports = (passport) => {
               type: "GITHUB",
             });
             if (accountCreated) {
+              const account = await getBlogAccountById(accountCreated.id);
+
+              const url = `http://localhost:5000/account/${account.id}/verify`;
+
+              const msg = {
+                to: account.email,
+                from: process.env.SENDGRID_SENDER,
+                subject: "Verify your account",
+                html: `<html><a href=${url}>${url}</a></html>`,
+              };
+
+              await sgMail.send(msg);
+
               await Notification.create({
                 blogAccountId: accountCreated.id,
                 text: "Your account was created successfully!",
