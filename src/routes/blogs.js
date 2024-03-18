@@ -31,6 +31,7 @@ const {
   updateUsername,
   updateIsVerifiedAccount,
   getBlogById,
+  updateBlogName,
 } = require("../controllers/blogs");
 
 const bcrypt = require("bcryptjs");
@@ -574,6 +575,87 @@ router.post("/account", async (req, res, next) => {
     });
   } catch (error) {
     return next("Error trying to create a new account");
+  }
+});
+
+// Update blog name
+router.put("/blog/:id", ensureAuthenticatedUser, async (req, res, next) => {
+  const { id } = req.params;
+
+  const { name } = req.body;
+
+  try {
+    if (!validateId(id)) {
+      return res.status(400).json({
+        statusCode: 400,
+        msg: `ID: ${id} - Invalid format!`,
+      });
+    }
+
+    const blog = await getBlogById(id);
+
+    if (!blog) {
+      return res.status(404).json({
+        statusCode: 404,
+        msg: `Blog with ID: ${id} not found!`,
+      });
+    }
+
+    console.log(blog.account);
+
+    if (blog.account.id !== req.user.id) {
+      return res.status(400).json({
+        statusCode: 400,
+        msg: "You can not update a blog that is not yours!",
+      });
+    }
+
+    if (blog.isBanned === true) {
+      return res.status(400).json({
+        statusCode: 400,
+        msg: "This blog is banned! You can not update its name...",
+      });
+    }
+
+    if (validateName(name)) {
+      return res.status(400).json({
+        statusCode: 400,
+        msg: validateName(name),
+      });
+    }
+
+    const blogFound = await Blog.findOne({
+      where: {
+        name: {
+          [Op.iLike]: name,
+        },
+      },
+    });
+
+    if (blogFound) {
+      return res.status(400).json({
+        statusCode: 400,
+        msg: `Blog with name: ${name} exists! Try with another one...`,
+      });
+    }
+
+    const updatedBlog = await updateBlogName(id, name);
+
+    if (updatedBlog) {
+      await Notification.create({
+        blogAccountId: req.user.id,
+        text: "The name of the blog was updated successfully!",
+      });
+
+      return res.status(200).json({
+        statusCode: 200,
+        msg: "Blog updated successfully!",
+        data: updatedBlog,
+      });
+    }
+  } catch (error) {
+    console.log(error);
+    return next("Error trying to update blog name");
   }
 });
 
