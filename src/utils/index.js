@@ -143,6 +143,20 @@ const validateName = (name) => {
   return false;
 };
 
+const validateTitle = (title) => {
+  //if (text === 0) return "Text must be a string";
+  if (!title) return "Title is missing";
+  if (typeof title !== "string") return "Title must be a string";
+  return false;
+};
+
+const validateText = (text) => {
+  if (text === 0) return "Text must be a string";
+  if (!text) return "Text is missing";
+  if (typeof text !== "string") return "Text must be a string";
+  return false;
+};
+
 // Access Control User
 const ensureAuthenticatedUser = (req, res, next) => {
   if (req.isAuthenticated()) {
@@ -329,4 +343,6 @@ module.exports = {
   ensureAuthenticatedAdmin,
   validateImageSize,
   validateName,
+  validateText,
+  validateTitle,
 };
