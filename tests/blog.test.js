@@ -222,3 +222,60 @@ describe("PUT /blog/:id route -> update blog", () => {
     expect(response.body.msg).toBe("You successfully logged out!");
   });
 });
+
+describe("DELETE /blog/:id route -> delete blog", () => {
+  it("it should return 401 status code -> not authorized", async () => {
+    const response = await request(app).delete("/api/blog/1");
+    expect(response.status).toBe(401);
+    expect(response.body.msg).toBe("You are not authorized! Please login...");
+  });
+  it("it should return 200 status code -> user logged in", async () => {
+    const user = {
+      email: "user1@fakeapis.io",
+      password: "F4k3ap1s.io",
+    };
+
+    const response = await request(app).post("/api/login").send(user);
+    expect(response.status).toBe(200);
+    expect(response.body.msg).toBe("You logged in successfully");
+    cookie = response.headers["set-cookie"];
+  });
+  it("it should return 400 status code -> id invalid format", async () => {
+    const response = await request(app)
+      .delete("/api/blog/1")
+      .set("Cookie", cookie);
+    expect(response.status).toBe(400);
+    expect(response.body.msg).toBe("ID: 1 - Invalid format!");
+  });
+  it("it should return 404 status code -> blog not found", async () => {
+    const response = await request(app)
+      .delete("/api/blog/12d22c96-aa7b-42ff-a67f-5d34f2683225")
+      .set("Cookie", cookie);
+    expect(response.status).toBe(404);
+    expect(response.body.msg).toBe(
+      "Blog with ID: 12d22c96-aa7b-42ff-a67f-5d34f2683225 not found!"
+    );
+  });
+  it("it should return 400 status code -> blog not yours", async () => {
+    const response = await request(app)
+      .delete(`/api/blog/${blog2_id}`)
+      .set("Cookie", cookie);
+    expect(response.status).toBe(400);
+    expect(response.body.msg).toBe(
+      "You can not delete a blog that is not yours!"
+    );
+  });
+  it("it should return 200 status code -> blog deleted", async () => {
+    const response = await request(app)
+      .delete(`/api/blog/${blog1_id}`)
+      .set("Cookie", cookie);
+    expect(response.status).toBe(200);
+  });
+  it("it should return a 200 status code -> logout process", async () => {
+    const response = await request(app)
+      .get("/api/logout")
+      .set("Cookie", cookie);
+    expect(response.status).toBe(200);
+    expect(response.body.msg).toBe("You successfully logged out!");
+  });
+});
