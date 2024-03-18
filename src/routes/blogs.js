@@ -22,6 +22,7 @@ const {
   ensureAuthenticatedAdmin,
   ensureAuthenticatedUser,
   validateImageSize,
+  validateName,
 } = require("../utils/index");
 
 const {
@@ -29,6 +30,7 @@ const {
   updateUserImage,
   updateUsername,
   updateIsVerifiedAccount,
+  getBlogById,
 } = require("../controllers/blogs");
 
 const bcrypt = require("bcryptjs");
@@ -174,6 +176,57 @@ router.get("/logout", (req, res, next) => {
       msg: "You successfully logged out!",
     });
   });
+});
+
+// Create new blog
+router.post("/blog", ensureAuthenticatedUser, async (req, res, next) => {
+  const { name } = req.body;
+
+  if (validateName(name)) {
+    return res.status(400).json({
+      statusCode: 400,
+      msg: validateName(name),
+    });
+  }
+
+  try {
+    const blogFound = await Blog.findOne({
+      where: {
+        name: {
+          [Op.iLike]: name,
+        },
+      },
+    });
+
+    if (blogFound) {
+      return res.status(400).json({
+        statusCode: 400,
+        msg: `Blog with name: ${name} exists! Try with another one...`,
+      });
+    }
+
+    const blogCreated = await Blog.create({
+      blogAccountId: req.user.id,
+      name,
+    });
+
+    if (blogCreated) {
+      await Notification.create({
+        blogAccountId: req.user.id,
+        text: `Blog "${blogCreated.name}" was created successfully!`,
+      });
+    }
+
+    const blog = await getBlogById(blogCreated.id);
+
+    res.status(201).json({
+      statusCode: 201,
+      msg: "Blog created successfull!",
+      data: blog,
+    });
+  } catch (error) {
+    return next("Error trying to create a new blog");
+  }
 });
 
 router.post("/reset/password", async (req, res, next) => {
