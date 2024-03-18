@@ -621,7 +621,6 @@ describe("DELETE /post/:id route -> delete post", () => {
       .delete("/api/post/568a9c81-9c16-48b0-a967-f3e52e7798d9")
       .set("Cookie", cookie);
     expect(response.status).toBe(200);
-    console.log(response.body);
   });
   it("it should return a 200 status code -> logout process", async () => {
     const response = await request(app)
