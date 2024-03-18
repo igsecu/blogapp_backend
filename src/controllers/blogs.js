@@ -99,8 +99,34 @@ const updateUsername = async (id, username) => {
   }
 };
 
+// Update user account isVerified
+const updateIsVerifiedAccount = async (id) => {
+  try {
+    const updatedAccount = await BlogAccount.update(
+      {
+        isVerified: true,
+      },
+      {
+        where: {
+          id,
+        },
+      }
+    );
+
+    if (updatedAccount[0] === 1) {
+      const account = await getBlogAccountById(id);
+
+      return account;
+    }
+  } catch (error) {
+    console.log(error.message);
+    throw new Error("Error trying to verify account!");
+  }
+};
+
 module.exports = {
   getBlogAccountById,
   updateUserImage,
   updateUsername,
+  updateIsVerifiedAccount,
 };
