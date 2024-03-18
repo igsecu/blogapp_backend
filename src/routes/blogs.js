@@ -601,8 +601,6 @@ router.put("/blog/:id", ensureAuthenticatedUser, async (req, res, next) => {
       });
     }
 
-    console.log(blog.account);
-
     if (blog.account.id !== req.user.id) {
       return res.status(400).json({
         statusCode: 400,
@@ -787,6 +785,60 @@ router.put(
   }
 );
 
+// Delete blog
+router.delete("/blog/:id", ensureAuthenticatedUser, async (req, res, next) => {
+  const { id } = req.params;
+
+  try {
+    if (!validateId(id)) {
+      return res.status(400).json({
+        statusCode: 400,
+        msg: `ID: ${id} - Invalid format!`,
+      });
+    }
+
+    const blog = await getBlogById(id);
+
+    if (!blog) {
+      return res.status(404).json({
+        statusCode: 404,
+        msg: `Blog with ID: ${id} not found!`,
+      });
+    }
+
+    if (blog.account.id !== req.user.id) {
+      return res.status(400).json({
+        statusCode: 400,
+        msg: "You can not delete a blog that is not yours!",
+      });
+    }
+
+    const deletedBlog = await Blog.destroy({
+      where: {
+        id,
+      },
+    });
+
+    console.log(deletedBlog);
+
+    if (deletedBlog) {
+      await Notification.create({
+        blogAccountId: req.user.id,
+        text: `Blog: ${blog.name} was deleted successfully!`,
+      });
+
+      return res.status(200).json({
+        statusCode: 200,
+        msg: "Blog deleted successfully!",
+        data: deletedBlog,
+      });
+    }
+  } catch (error) {
+    console.log(error);
+    return next("Error trying to delete a blog");
+  }
+});
+
 // Delete user account image
 router.delete(
   "/account/image",
@@ -831,7 +883,7 @@ router.delete(
   }
 );
 
-// Delete user account image
+// Delete user account
 router.delete("/account", ensureAuthenticatedUser, async (req, res, next) => {
   try {
     const account = await BlogAccount.findByPk(req.user.id);
