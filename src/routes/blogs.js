@@ -105,8 +105,8 @@ router.get("/account/:id/verify", async (req, res, next) => {
     const accountFound = await getBlogAccountById(id);
 
     if (!accountFound) {
-      return res.status(400).json({
-        statusCode: 400,
+      return res.status(404).json({
+        statusCode: 404,
         msg: `Account with ID: ${id} not found!`,
       });
     }
@@ -282,7 +282,7 @@ router.post("/account", async (req, res, next) => {
           if (accountCreated) {
             const account = await getBlogAccountById(accountCreated.id);
 
-            const url = `http://localhost:5000/api/account/${account.id}/verify`;
+            /* const url = `http://localhost:5000/api/account/${account.id}/verify`;
 
             const msg = {
               to: account.email,
@@ -291,7 +291,7 @@ router.post("/account", async (req, res, next) => {
               html: `<html><a href=${url}>${url}</a></html>`,
             };
 
-            await sgMail.send(msg);
+            await sgMail.send(msg); */
 
             await Notification.create({
               blogAccountId: account.id,
