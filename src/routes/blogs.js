@@ -219,21 +219,21 @@ router.post(
       if (post.isBanned === true) {
         return res.status(400).json({
           statusCode: 400,
-          msg: "This post is banned! You can not comment on it...",
+          msg: "This post is banned! You can not like it...",
         });
       }
 
       if (post.blog.isBanned === true) {
         return res.status(400).json({
           statusCode: 400,
-          msg: "The blog of the post is banned! You can not comment on it...",
+          msg: "The blog of the post is banned! You can not like it...",
         });
       }
 
       if (post.blog.account.isBanned === true) {
         return res.status(400).json({
           statusCode: 400,
-          msg: "The account of the post is banned! You can not comment on it...",
+          msg: "The account of the post is banned! You can not like it...",
         });
       }
 
@@ -1578,5 +1578,92 @@ router.delete("/account", ensureAuthenticatedUser, async (req, res, next) => {
     return next("Error trying to delete user account");
   }
 });
+
+// Deletelike
+router.delete(
+  "/like/post/:id",
+  ensureAuthenticatedUser,
+  async (req, res, next) => {
+    const { id } = req.params;
+
+    try {
+      if (!validateId(id)) {
+        return res.status(400).json({
+          statusCode: 400,
+          msg: `ID: ${id} - Invalid format!`,
+        });
+      }
+
+      const post = await getPostById(id);
+
+      if (!post) {
+        return res.status(404).json({
+          statusCode: 404,
+          msg: `Post with ID: ${id} not found!`,
+        });
+      }
+
+      if (post.isBanned === true) {
+        return res.status(400).json({
+          statusCode: 400,
+          msg: "This post is banned! You can not dislike it...",
+        });
+      }
+
+      if (post.blog.isBanned === true) {
+        return res.status(400).json({
+          statusCode: 400,
+          msg: "The blog of the post is banned! You can not dislike it...",
+        });
+      }
+
+      if (post.blog.account.isBanned === true) {
+        return res.status(400).json({
+          statusCode: 400,
+          msg: "The account of the post is banned! You can not dislike it...",
+        });
+      }
+
+      const likeFound = await Like.findOne({
+        where: {
+          blogAccountId: req.user.id,
+          postId: id,
+        },
+      });
+
+      if (!likeFound) {
+        return res.status(400).json({
+          statusCode: 400,
+          msg: "You can not dislike a post that you did not like!",
+        });
+      }
+
+      const likeDeleted = await Like.destroy({
+        where: {
+          id: likeFound.id,
+        },
+      });
+
+      if (likeDeleted) {
+        await Post.decrement(
+          { likes_number: 1 },
+          {
+            where: {
+              id,
+            },
+          }
+        );
+
+        return res.status(200).json({
+          statusCode: 201,
+          msg: `You disliked the post: ${post.title}`,
+        });
+      }
+    } catch (error) {
+      console.log(error.message);
+      return next("Error trying to dislike a post");
+    }
+  }
+);
 
 module.exports = router;
