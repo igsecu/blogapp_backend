@@ -381,6 +381,37 @@ const getAccountBlogs = async (id) => {
   }
 };
 
+// Get comment by id
+const getCommentById = async (id) => {
+  try {
+    const result = await Comment.findByPk(id, {
+      attributes: ["id", "text", "isBanned"],
+      include: {
+        model: BlogAccount,
+        attributes: ["id", "email", "username", "image"],
+      },
+    });
+
+    if (result) {
+      return {
+        id: result.id,
+        text: result.text,
+        isBanned: result.isBanned,
+        account: {
+          id: result.blogAccount.id,
+          email: result.blogAccount.email,
+          username: result.blogAccount.username,
+          image: result.blogAccount.image,
+        },
+      };
+    }
+
+    return result;
+  } catch (error) {
+    throw new Error("Error trying to get a comment by its id");
+  }
+};
+
 module.exports = {
   getBlogAccountById,
   updateUserImage,
@@ -394,4 +425,5 @@ module.exports = {
   updatePostImage,
   getBlogPosts,
   getAccountBlogs,
+  getCommentById,
 };
