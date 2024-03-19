@@ -208,7 +208,7 @@ module.exports = (passport) => {
     try {
       const accountFound = await getBlogAccountById(id);
       if (accountFound) {
-        done(null, { isAdmin: false, ...accountFound });
+        done(null, accountFound);
       } else {
         done(null, { msg: `Account not found!` });
       }
