@@ -13,9 +13,9 @@ const Comment = db.define(
       type: DataTypes.TEXT,
       allowNull: false,
     },
-    username: {
-      type: DataTypes.STRING,
-      allowNull: false,
+    isBanned: {
+      type: DataTypes.BOOLEAN,
+      defaultValue: false,
     },
   },
   {
