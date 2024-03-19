@@ -1057,6 +1057,53 @@ router.put(
   }
 );
 
+// Not Ban account
+router.put(
+  "/account/:id/banned/false",
+  ensureAuthenticatedAdmin,
+  async (req, res, next) => {
+    const { id } = req.params;
+
+    try {
+      if (!validateId(id)) {
+        return res.status(400).json({
+          statusCode: 400,
+          msg: `ID: ${id} - Invalid format!`,
+        });
+      }
+
+      const accountFound = await getBlogAccountById(id);
+
+      if (!accountFound) {
+        return res.status(404).json({
+          statusCode: 404,
+          msg: `Account with ID: ${id} not found!`,
+        });
+      }
+
+      const updatedAccount = await BlogAccount.update(
+        {
+          isBanned: false,
+        },
+        {
+          where: {
+            id,
+          },
+        }
+      );
+
+      if (updatedAccount) {
+        return res.status(200).json({
+          statusCode: 200,
+          msg: "Updated account successfully!",
+        });
+      }
+    } catch (error) {
+      return next("Error trying to not ban an account");
+    }
+  }
+);
+
 // Update post image
 router.put(
   "/post/:id/image",
