@@ -45,6 +45,8 @@ const {
   getBlogPosts,
   getAccountBlogs,
   getCommentById,
+  getBlogs,
+  getPosts,
 } = require("../controllers/blogs");
 
 const bcrypt = require("bcryptjs");
@@ -60,6 +62,48 @@ const Token = require("../models/Token");
 sgMail.setApiKey(process.env.SENDGRID_API_KEY);
 
 const uuid = require("uuid");
+
+// Get all posts
+router.get("/posts", async (req, res, next) => {
+  try {
+    const posts = await getPosts();
+
+    if (!posts.length) {
+      return res.status(404).json({
+        statusCode: 404,
+        msg: "No posts saved in DB!",
+      });
+    }
+
+    res.status(200).json({
+      statusCode: 200,
+      data: posts,
+    });
+  } catch (error) {
+    return next(error);
+  }
+});
+
+// Get all blogs
+router.get("/blogs", async (req, res, next) => {
+  try {
+    const blogs = await getBlogs();
+
+    if (!blogs.length) {
+      return res.status(404).json({
+        statusCode: 404,
+        msg: "No blogs saved in DB!",
+      });
+    }
+
+    res.status(200).json({
+      statusCode: 200,
+      data: blogs,
+    });
+  } catch (error) {
+    return next(error);
+  }
+});
 
 // Github Callback
 router.get(
