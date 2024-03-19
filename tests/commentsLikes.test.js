@@ -244,3 +244,88 @@ describe("POST /comment route -> create new comment", () => {
     expect(response.body.msg).toBe("You successfully logged out!");
   });
 });
+
+describe("POST /like route -> create new like", () => {
+  it("it should return 401 status code -> not authorized", async () => {
+    const response = await request(app).post("/api/like/post/1");
+    expect(response.status).toBe(401);
+    expect(response.body.msg).toBe("You are not authorized! Please login...");
+  });
+  it("it should return 200 status code -> user logged in", async () => {
+    const user = {
+      email: "user1@fakeapis.io",
+      password: "F4k3ap1s.io",
+    };
+
+    const response = await request(app).post("/api/login").send(user);
+    expect(response.status).toBe(200);
+    expect(response.body.msg).toBe("You logged in successfully");
+    cookie = response.headers["set-cookie"];
+  });
+  it("it should return 400 status code -> post invalid format", async () => {
+    const response = await request(app)
+      .post("/api/like/post/1")
+      .set("Cookie", cookie);
+    expect(response.status).toBe(400);
+    expect(response.body.msg).toBe("ID: 1 - Invalid format!");
+  });
+  it("it should return 404 status code -> post not found", async () => {
+    const response = await request(app)
+      .post("/api/like/post/f7cbe35a-15f3-450a-9a33-c522b7ac8535")
+      .set("Cookie", cookie);
+    expect(response.status).toBe(404);
+    expect(response.body.msg).toBe(
+      "Post with ID: f7cbe35a-15f3-450a-9a33-c522b7ac8535 not found!"
+    );
+  });
+  it("it should return 201 status code -> like created", async () => {
+    const response = await request(app)
+      .post(`/api/like/post/${post1_id}`)
+      .set("Cookie", cookie);
+    expect(response.status).toBe(201);
+  });
+  it("it should return 400 status code -> like twice", async () => {
+    const response = await request(app)
+      .post(`/api/like/post/${post1_id}`)
+      .set("Cookie", cookie);
+    expect(response.status).toBe(400);
+  });
+  it("it should return a 200 status code -> logout process", async () => {
+    const response = await request(app)
+      .get("/api/logout")
+      .set("Cookie", cookie);
+    expect(response.status).toBe(200);
+    expect(response.body.msg).toBe("You successfully logged out!");
+  });
+  it("it should return 200 status code -> user logged in", async () => {
+    const user = {
+      email: "user2@fakeapis.io",
+      password: "F4k3ap1s.io",
+    };
+
+    const response = await request(app).post("/api/login").send(user);
+    expect(response.status).toBe(200);
+    expect(response.body.msg).toBe("You logged in successfully");
+    cookie = response.headers["set-cookie"];
+  });
+  it("it should return 201 status code -> like created", async () => {
+    const response = await request(app)
+      .post(`/api/like/post/${post1_id}`)
+      .set("Cookie", cookie);
+    console.log(response.body);
+    expect(response.status).toBe(201);
+  });
+  it("it should return 400 status code -> like twice", async () => {
+    const response = await request(app)
+      .post(`/api/like/post/${post1_id}`)
+      .set("Cookie", cookie);
+    expect(response.status).toBe(400);
+  });
+  it("it should return a 200 status code -> logout process", async () => {
+    const response = await request(app)
+      .get("/api/logout")
+      .set("Cookie", cookie);
+    expect(response.status).toBe(200);
+    expect(response.body.msg).toBe("You successfully logged out!");
+  });
+});
