@@ -192,6 +192,101 @@ router.get("/logout", (req, res, next) => {
   });
 });
 
+// Create new like
+router.post(
+  "/like/post/:id",
+  ensureAuthenticatedUser,
+  async (req, res, next) => {
+    const { id } = req.params;
+
+    try {
+      if (!validateId(id)) {
+        return res.status(400).json({
+          statusCode: 400,
+          msg: `ID: ${id} - Invalid format!`,
+        });
+      }
+
+      const post = await getPostById(id);
+
+      if (!post) {
+        return res.status(404).json({
+          statusCode: 404,
+          msg: `Post with ID: ${id} not found!`,
+        });
+      }
+
+      if (post.isBanned === true) {
+        return res.status(400).json({
+          statusCode: 400,
+          msg: "This post is banned! You can not comment on it...",
+        });
+      }
+
+      if (post.blog.isBanned === true) {
+        return res.status(400).json({
+          statusCode: 400,
+          msg: "The blog of the post is banned! You can not comment on it...",
+        });
+      }
+
+      if (post.blog.account.isBanned === true) {
+        return res.status(400).json({
+          statusCode: 400,
+          msg: "The account of the post is banned! You can not comment on it...",
+        });
+      }
+
+      const likeFound = await Like.findOne({
+        where: {
+          blogAccountId: req.user.id,
+          postId: id,
+        },
+      });
+
+      if (likeFound) {
+        return res.status(400).json({
+          statusCode: 400,
+          msg: "You can not like a post twice!",
+        });
+      }
+
+      const likeCreated = await Like.create({
+        blogAccountId: req.user.id,
+        postId: id,
+      });
+
+      if (likeCreated) {
+        if (post.blog.account.id !== req.user.id) {
+          await Notification.create({
+            blogAccountId: post.blog.account.id,
+            text: `${
+              req.user.username ? req.user.username : req.user.email
+            } liked your post ${post.title}!`,
+          });
+        }
+
+        await Post.increment(
+          { likes_number: 1 },
+          {
+            where: {
+              id,
+            },
+          }
+        );
+
+        return res.status(201).json({
+          statusCode: 201,
+          msg: `You liked the post: ${post.title}`,
+        });
+      }
+    } catch (error) {
+      console.log(error.message);
+      return next("Error trying to like a post");
+    }
+  }
+);
+
 // Create new comment
 router.post("/comment", ensureAuthenticatedUser, async (req, res, next) => {
   const { text, postId } = req.body;
