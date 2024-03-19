@@ -44,6 +44,7 @@ const {
   updatePostImage,
   getBlogPosts,
   getAccountBlogs,
+  getCommentById,
 } = require("../controllers/blogs");
 
 const bcrypt = require("bcryptjs");
@@ -59,7 +60,6 @@ const Token = require("../models/Token");
 sgMail.setApiKey(process.env.SENDGRID_API_KEY);
 
 const uuid = require("uuid");
-const { post } = require("../..");
 
 // Github Callback
 router.get(
@@ -109,7 +109,7 @@ router.get(
   passport.authenticate("google", { scope: ["profile", "email"] })
 );
 
-// Get Logged in account
+// Verify account
 router.get("/account/:id/verify", async (req, res, next) => {
   const { id } = req.params;
 
@@ -190,6 +190,100 @@ router.get("/logout", (req, res, next) => {
       msg: "You successfully logged out!",
     });
   });
+});
+
+// Create new comment
+router.post("/comment", ensureAuthenticatedUser, async (req, res, next) => {
+  const { text, postId } = req.body;
+
+  try {
+    if (!postId) {
+      return res.status(400).json({
+        statusCode: 400,
+        msg: "postId is missing",
+      });
+    }
+
+    if (!validateId(postId)) {
+      return res.status(400).json({
+        statusCode: 400,
+        msg: `postId: ${postId} - Invalid format!`,
+      });
+    }
+
+    const post = await getPostById(postId);
+
+    if (!post) {
+      return res.status(404).json({
+        statusCode: 404,
+        msg: `Post with ID: ${postId} not found!`,
+      });
+    }
+
+    if (post.isBanned === true) {
+      return res.status(400).json({
+        statusCode: 400,
+        msg: "This post is banned! You can not comment on it...",
+      });
+    }
+
+    if (post.blog.isBanned === true) {
+      return res.status(400).json({
+        statusCode: 400,
+        msg: "The blog of the post is banned! You can not comment on it...",
+      });
+    }
+
+    if (post.blog.account.isBanned === true) {
+      return res.status(400).json({
+        statusCode: 400,
+        msg: "The account of the post is banned! You can not comment on it...",
+      });
+    }
+
+    if (validateText(text)) {
+      return res.status(400).json({
+        statusCode: 400,
+        msg: validateText(text),
+      });
+    }
+
+    const commentCreated = await Comment.create({
+      text,
+      postId,
+      blogAccountId: req.user.id,
+    });
+
+    if (commentCreated) {
+      await Post.increment(
+        {
+          comments_number: 1,
+        },
+        {
+          where: {
+            id: postId,
+          },
+        }
+      );
+
+      if (post.blog.account.id !== req.user.id) {
+        await Notification.create({
+          blogAccountId: post.blog.account.id,
+          text: `You received a new comment in your post ${post.title}`,
+        });
+      }
+
+      const comment = await getCommentById(commentCreated.id);
+
+      res.status(201).json({
+        statusCode: 201,
+        msg: "Comment created successfully!",
+        data: comment,
+      });
+    }
+  } catch (error) {
+    return next("Error trying to create a new comment");
+  }
 });
 
 // Create new post
@@ -732,7 +826,7 @@ router.post("/account", async (req, res, next) => {
   }
 });
 
-// Update user account image
+// Update post image
 router.put(
   "/post/:id/image",
   ensureAuthenticatedUser,
@@ -1320,7 +1414,7 @@ router.delete(
       );
 
       if (updatedAccount[0] === 1) {
-        const account = await getBlogAccountById(id);
+        const account = await getBlogAccountById(req.user.id);
 
         return res.status(200).json({
           statusCode: 200,
