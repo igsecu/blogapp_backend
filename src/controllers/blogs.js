@@ -21,6 +21,7 @@ const getBlogAccountById = async (id) => {
         "isVerified",
         "image",
         "type",
+        "isAdmin",
       ],
     });
 
@@ -33,6 +34,7 @@ const getBlogAccountById = async (id) => {
         isVerified: account.isVerified,
         image: account.image,
         type: account.type,
+        isAdmin: account.isAdmin,
       };
     }
 
