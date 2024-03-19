@@ -1244,6 +1244,53 @@ router.put(
   }
 );
 
+// Not Ban comment
+router.put(
+  "/comment/:id/banned/false",
+  ensureAuthenticatedAdmin,
+  async (req, res, next) => {
+    const { id } = req.params;
+
+    try {
+      if (!validateId(id)) {
+        return res.status(400).json({
+          statusCode: 400,
+          msg: `ID: ${id} - Invalid format!`,
+        });
+      }
+
+      const commentFound = await getCommentById(id);
+
+      if (!commentFound) {
+        return res.status(404).json({
+          statusCode: 404,
+          msg: `Comment with ID: ${id} not found!`,
+        });
+      }
+
+      const updatedComment = await Comment.update(
+        {
+          isBanned: false,
+        },
+        {
+          where: {
+            id,
+          },
+        }
+      );
+
+      if (updatedComment) {
+        return res.status(200).json({
+          statusCode: 200,
+          msg: "Comment updated successfully!",
+        });
+      }
+    } catch (error) {
+      return next("Error trying to not ban a comment");
+    }
+  }
+);
+
 // Ban post
 router.put(
   "/post/:id/banned/true",
