@@ -1048,7 +1048,7 @@ router.put(
       if (updatedAccount) {
         return res.status(200).json({
           statusCode: 200,
-          msg: "Updated account successfully!",
+          msg: "Account updated successfully!",
         });
       }
     } catch (error) {
@@ -1095,7 +1095,7 @@ router.put(
       if (updatedAccount) {
         return res.status(200).json({
           statusCode: 200,
-          msg: "Updated account successfully!",
+          msg: "Account updated successfully!",
         });
       }
     } catch (error) {
@@ -1260,6 +1260,53 @@ router.put("/post/:id", ensureAuthenticatedUser, async (req, res, next) => {
     return next("Error trying to update post");
   }
 });
+
+// Ban blog
+router.put(
+  "/blog/:id/banned/true",
+  ensureAuthenticatedAdmin,
+  async (req, res, next) => {
+    const { id } = req.params;
+
+    try {
+      if (!validateId(id)) {
+        return res.status(400).json({
+          statusCode: 400,
+          msg: `ID: ${id} - Invalid format!`,
+        });
+      }
+
+      const blogFound = await getBlogById(id);
+
+      if (!blogFound) {
+        return res.status(404).json({
+          statusCode: 404,
+          msg: `Blog with ID: ${id} not found!`,
+        });
+      }
+
+      const updatedBlog = await Blog.update(
+        {
+          isBanned: true,
+        },
+        {
+          where: {
+            id,
+          },
+        }
+      );
+
+      if (updateBlogName) {
+        return res.status(200).json({
+          statusCode: 200,
+          msg: "Blog updated successfully!",
+        });
+      }
+    } catch (error) {
+      return next("Error trying to ban a blog");
+    }
+  }
+);
 
 // Update blog name
 router.put("/blog/:id", ensureAuthenticatedUser, async (req, res, next) => {
