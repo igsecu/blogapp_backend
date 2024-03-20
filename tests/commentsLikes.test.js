@@ -245,7 +245,7 @@ describe("POST /comment route -> create new comment", () => {
   });
 });
 
-describe("POST /like route -> create new like", () => {
+describe("POST /like/post/:id route -> create new like", () => {
   it("it should return 401 status code -> not authorized", async () => {
     const response = await request(app).post("/api/like/post/1");
     expect(response.status).toBe(401);
@@ -330,7 +330,7 @@ describe("POST /like route -> create new like", () => {
   });
 });
 
-describe("POST /like route -> create new like", () => {
+describe("DELETE /like/post/:id route -> dislike a post", () => {
   it("it should return 401 status code -> not authorized", async () => {
     const response = await request(app).delete("/api/like/post/1");
     expect(response.status).toBe(401);
