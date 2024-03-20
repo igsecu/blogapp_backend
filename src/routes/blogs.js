@@ -113,6 +113,50 @@ router.get("/blogs", async (req, res, next) => {
   }
 });
 
+// Get blog account by id
+router.get("/account/:id", async (req, res, next) => {
+  const { id } = req.params;
+
+  try {
+    if (!validateId(id)) {
+      return res.status(400).json({
+        statusCode: 400,
+        msg: `ID: ${id} - Invalid format!`,
+      });
+    }
+
+    const account = await getBlogAccountById(id);
+
+    if (!account) {
+      return res.status(404).json({
+        statusCode: 404,
+        msg: `Account with ID: ${id} not found!`,
+      });
+    }
+
+    if (account.isBanned === true) {
+      return res.status(400).json({
+        statusCode: 400,
+        msg: "This account is banned! You can not access to it...",
+      });
+    }
+
+    if (account.isAdmin === true) {
+      return res.status(401).json({
+        statusCode: 401,
+        msg: "You can not access to this account!",
+      });
+    }
+
+    res.status(200).json({
+      statusCode: 200,
+      data: account,
+    });
+  } catch (error) {
+    return next(error);
+  }
+});
+
 // Get not banned accounts with user logged in
 router.get(
   "/accounts/auth",
