@@ -88,6 +88,62 @@ sgMail.setApiKey(process.env.SENDGRID_API_KEY);
 
 const uuid = require("uuid");
 
+// Get post by id
+router.get("/post/:id", async (req, res, next) => {
+  const { id } = req.params;
+
+  if (!validateId(id)) {
+    return res.status(400).json({
+      statusCode: 400,
+      msg: `ID: ${id} - Invalid format!`,
+    });
+  }
+
+  try {
+    let post = await getPostById(id);
+
+    if (!post) {
+      return res.status(404).json({
+        statusCode: 404,
+        msg: `Post with ID: ${id} not found!`,
+      });
+    }
+
+    if (post.isBanned === true) {
+      return res.status(400).json({
+        statusCode: 400,
+        msg: "This post is banned! You can not access to it...",
+      });
+    }
+
+    if (post.blog.isBanned === true) {
+      return res.status(400).json({
+        statusCode: 400,
+        msg: "The blog of the post! You can not access to it...",
+      });
+    }
+
+    if (post.blog.account.isBanned === true) {
+      return res.status(400).json({
+        statusCode: 400,
+        msg: "The account of the post! You can not access to it...",
+      });
+    }
+
+    await Post.increment({ readers: 1 }, { where: { id } });
+
+    post = await getPostById(id);
+
+    res.status(200).json({
+      statusCode: 200,
+      data: post,
+    });
+  } catch (error) {
+    console.log(error.message);
+    return next(error);
+  }
+});
+
 // Get not banned posts
 router.get(
   "/posts/banned/false",
