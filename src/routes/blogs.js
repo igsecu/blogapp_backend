@@ -53,6 +53,8 @@ const {
   getBannedAccountsPagination,
   getNotBannedAccounts,
   getNotBannedAccountsPagination,
+  getNotBannedAccountsAuth,
+  getNotBannedAccountsAuthPagination,
 } = require("../controllers/blogs");
 
 const bcrypt = require("bcryptjs");
@@ -110,6 +112,65 @@ router.get("/blogs", async (req, res, next) => {
     return next(error);
   }
 });
+
+// Get not banned accounts with user logged in
+router.get(
+  "/accounts/auth",
+  ensureAuthenticatedUser,
+  async (req, res, next) => {
+    const { page, limit } = req.query;
+
+    try {
+      const accounts = await getNotBannedAccountsAuth(req.user.id);
+
+      let totalPages;
+
+      if (limit) {
+        if (limit !== "0" && !parseInt(limit)) {
+          return res.status(400).json({
+            statusCode: 400,
+            msg: "Limit must be a number",
+          });
+        }
+
+        totalPages = Math.ceil(accounts.length / limit);
+      } else {
+        totalPages = Math.ceil(accounts.length / 10);
+      }
+
+      if (page) {
+        if (page !== "0" && !parseInt(page)) {
+          return res.status(400).json({
+            statusCode: 400,
+            msg: "Page must be a number",
+          });
+        }
+
+        if (parseInt(page) === 0 || parseInt(page) > totalPages) {
+          return res.status(404).json({
+            statusCode: 404,
+            msg: `Page ${page} not found!`,
+          });
+        }
+      }
+
+      res.status(200).json({
+        statusCode: 200,
+        totalResults: accounts.length,
+        totalPages,
+        page: parseInt(page) || 1,
+        data: await getNotBannedAccountsAuthPagination(
+          req.user.id,
+          page || 1,
+          limit || 10
+        ),
+      });
+    } catch (error) {
+      console.log(error.message);
+      return next(error);
+    }
+  }
+);
 
 // Get not banned accounts
 router.get(
