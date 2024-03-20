@@ -414,65 +414,6 @@ const getCommentById = async (id) => {
   }
 };
 
-// Get all posts
-const getPosts = async () => {
-  const results = [];
-  try {
-    const dbResults = await Post.findAll({
-      attributes: [
-        "id",
-        "title",
-        "text",
-        "isBanned",
-        "readers",
-        "comments_number",
-        "likes_number",
-        "image",
-      ],
-      include: [
-        {
-          model: Blog,
-          attributes: ["id", "name", "isBanned"],
-          include: {
-            model: BlogAccount,
-            attributes: ["id", "username", "email", "isBanned"],
-          },
-        },
-      ],
-    });
-
-    if (dbResults) {
-      dbResults.forEach((r) => {
-        results.push({
-          id: r.id,
-          title: r.title,
-          text: r.text,
-          isBanned: r.isBanned,
-          readers: r.readers,
-          likes: r.likes_number,
-          comments: r.comments_number,
-          image: r.image,
-          blog: {
-            id: r.blog.id,
-            name: r.blog.name,
-            isBanned: r.blog.isBanned,
-            account: {
-              id: r.blog.blogAccount.id,
-              username: r.blog.blogAccount.username,
-              image: r.blog.blogAccount.image,
-              isBanned: r.blog.blogAccount.isBanned,
-            },
-          },
-        });
-      });
-    }
-
-    return results;
-  } catch (error) {
-    throw new Error("Error trying to get all posts");
-  }
-};
-
 // Get all accounts
 const getAccounts = async (id) => {
   const results = [];
@@ -851,7 +792,6 @@ module.exports = {
   getBlogPosts,
   getAccountBlogs,
   getCommentById,
-  getPosts,
   getAccounts,
   getAccountsPagination,
   getBannedAccounts,
