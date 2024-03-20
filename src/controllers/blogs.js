@@ -507,6 +507,44 @@ const getPosts = async () => {
   }
 };
 
+// Get all accounts
+const getAccounts = async () => {
+  const results = [];
+  try {
+    const accounts = await BlogAccount.findAll({
+      attributes: [
+        "id",
+        "email",
+        "username",
+        "isBanned",
+        "isVerified",
+        "image",
+        "type",
+        "isAdmin",
+      ],
+    });
+
+    if (accounts) {
+      accounts.forEach((r) => {
+        results.push({
+          id: r.id,
+          email: r.email,
+          username: r.username,
+          isBanned: r.isBanned,
+          isVerified: r.isVerified,
+          image: r.image,
+          type: r.type,
+          isAdmin: r.isAdmin,
+        });
+      });
+    }
+
+    return results;
+  } catch (error) {
+    throw new Error("Error trying to get all accounts");
+  }
+};
+
 module.exports = {
   getBlogAccountById,
   updateUserImage,
@@ -523,4 +561,5 @@ module.exports = {
   getCommentById,
   getBlogs,
   getPosts,
+  getAccounts,
 };
