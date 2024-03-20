@@ -339,6 +339,91 @@ const getBlogsAuthPagination = async (id, page, limit) => {
   }
 };
 
+// Get blog account blogs
+const getBlogAccountBlogs = async (id) => {
+  const results = [];
+  try {
+    const dbResults = await Blog.findAll({
+      attributes: ["id", "name", "isBanned"],
+      include: {
+        model: BlogAccount,
+        attributes: ["id", "email", "username", "isBanned"],
+        where: {
+          id,
+          isBanned: false,
+        },
+      },
+      where: {
+        isBanned: false,
+      },
+    });
+
+    if (dbResults) {
+      dbResults.forEach((r) => {
+        results.push({
+          id: r.id,
+          name: r.name,
+          isBanned: r.isBanned,
+          account: {
+            id: r.blogAccount.id,
+            email: r.blogAccount.email,
+            username: r.blogAccount.username,
+            isBanned: r.blogAccount.isBanned,
+          },
+        });
+      });
+    }
+
+    return results;
+  } catch (error) {
+    throw new Error("Error trying to get all blogs");
+  }
+};
+
+// Get blog account blogs pagination
+const getBlogAccountBlogsPagination = async (id, page, limit) => {
+  const results = [];
+  try {
+    const dbResults = await Blog.findAll({
+      attributes: ["id", "name", "isBanned"],
+      include: {
+        model: BlogAccount,
+        attributes: ["id", "email", "username", "isBanned"],
+        where: {
+          id,
+          isBanned: false,
+        },
+      },
+      where: {
+        isBanned: false,
+      },
+      order: [["createdAt", "DESC"]],
+      limit,
+      offset: page * limit - limit,
+    });
+
+    if (dbResults) {
+      dbResults.forEach((r) => {
+        results.push({
+          id: r.id,
+          name: r.name,
+          isBanned: r.isBanned,
+          account: {
+            id: r.blogAccount.id,
+            email: r.blogAccount.email,
+            username: r.blogAccount.username,
+            isBanned: r.blogAccount.isBanned,
+          },
+        });
+      });
+    }
+
+    return results;
+  } catch (error) {
+    throw new Error("Error trying to get all blogs");
+  }
+};
+
 module.exports = {
   getBlogs,
   getBlogsPagination,
@@ -348,4 +433,6 @@ module.exports = {
   getNotBannedBlogsPagination,
   getBlogsAuth,
   getBlogsAuthPagination,
+  getBlogAccountBlogs,
+  getBlogAccountBlogsPagination,
 };
