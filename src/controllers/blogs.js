@@ -508,7 +508,7 @@ const getPosts = async () => {
 };
 
 // Get all accounts
-const getAccounts = async () => {
+const getAccounts = async (id) => {
   const results = [];
   try {
     const accounts = await BlogAccount.findAll({
@@ -522,6 +522,57 @@ const getAccounts = async () => {
         "type",
         "isAdmin",
       ],
+      where: {
+        id: {
+          [Op.not]: id,
+        },
+      },
+    });
+
+    if (accounts) {
+      accounts.forEach((r) => {
+        results.push({
+          id: r.id,
+          email: r.email,
+          username: r.username,
+          isBanned: r.isBanned,
+          isVerified: r.isVerified,
+          image: r.image,
+          type: r.type,
+          isAdmin: r.isAdmin,
+        });
+      });
+    }
+
+    return results;
+  } catch (error) {
+    throw new Error("Error trying to get all accounts");
+  }
+};
+
+// Get all accounts with pagination
+const getAccountsPagination = async (id, page, limit) => {
+  const results = [];
+  try {
+    const accounts = await BlogAccount.findAll({
+      attributes: [
+        "id",
+        "email",
+        "username",
+        "isBanned",
+        "isVerified",
+        "image",
+        "type",
+        "isAdmin",
+      ],
+      where: {
+        id: {
+          [Op.not]: id,
+        },
+      },
+      order: [["createdAt", "DESC"]],
+      limit,
+      offset: page * limit - limit,
     });
 
     if (accounts) {
@@ -562,4 +613,5 @@ module.exports = {
   getBlogs,
   getPosts,
   getAccounts,
+  getAccountsPagination,
 };
