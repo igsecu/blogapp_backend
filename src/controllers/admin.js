@@ -8,7 +8,7 @@ const Like = require("../models/Like");
 const BlogAccount = require("../models/BlogAccount");
 
 // Get all blogs
-const getBlogs = async () => {
+const getBlogs = async (id) => {
   const results = [];
   try {
     const dbResults = await Blog.findAll({
@@ -16,6 +16,11 @@ const getBlogs = async () => {
       include: {
         model: BlogAccount,
         attributes: ["id", "email", "username", "isBanned"],
+        where: {
+          id: {
+            [Op.not]: id,
+          },
+        },
       },
     });
 
@@ -83,7 +88,96 @@ const getBlogsPagination = async (id, page, limit) => {
   }
 };
 
+// Get banned blogs
+const getBannedBlogs = async (id) => {
+  const results = [];
+  try {
+    const dbResults = await Blog.findAll({
+      attributes: ["id", "name", "isBanned"],
+      include: {
+        model: BlogAccount,
+        attributes: ["id", "email", "username", "isBanned"],
+        where: {
+          id: {
+            [Op.not]: id,
+          },
+        },
+      },
+      where: {
+        isBanned: true,
+      },
+    });
+
+    if (dbResults) {
+      dbResults.forEach((r) => {
+        results.push({
+          id: r.id,
+          name: r.name,
+          isBanned: r.isBanned,
+          account: {
+            id: r.blogAccount.id,
+            email: r.blogAccount.email,
+            username: r.blogAccount.username,
+            isBanned: r.blogAccount.isBanned,
+          },
+        });
+      });
+    }
+
+    return results;
+  } catch (error) {
+    throw new Error("Error trying to get banned blogs");
+  }
+};
+
+// Get banned blogs Pagination
+const getBannedBlogsPagination = async (id, page, limit) => {
+  const results = [];
+  try {
+    const dbResults = await Blog.findAll({
+      attributes: ["id", "name", "isBanned"],
+      include: {
+        model: BlogAccount,
+        attributes: ["id", "email", "username", "isBanned"],
+        where: {
+          id: {
+            [Op.not]: id,
+          },
+        },
+      },
+      where: {
+        isBanned: true,
+      },
+      order: [["createdAt", "DESC"]],
+      limit,
+      offset: page * limit - limit,
+    });
+
+    if (dbResults) {
+      dbResults.forEach((r) => {
+        results.push({
+          id: r.id,
+          name: r.name,
+          isBanned: r.isBanned,
+          account: {
+            id: r.blogAccount.id,
+            email: r.blogAccount.email,
+            username: r.blogAccount.username,
+            isBanned: r.blogAccount.isBanned,
+          },
+        });
+      });
+    }
+
+    return results;
+  } catch (error) {
+    throw new Error("Error trying to get banned blogs");
+  }
+};
+
 module.exports = {
   getBlogs,
   getBlogsPagination,
+  getBannedBlogs,
+  getBannedBlogsPagination,
 };
