@@ -45,7 +45,6 @@ const {
   getBlogPosts,
   getAccountBlogs,
   getCommentById,
-  getBlogs,
   getPosts,
   getAccounts,
   getAccountsPagination,
@@ -56,6 +55,8 @@ const {
   getNotBannedAccountsAuth,
   getNotBannedAccountsAuthPagination,
 } = require("../controllers/blogs");
+
+const { getBlogs, getBlogsPagination } = require("../controllers/admin");
 
 const bcrypt = require("bcryptjs");
 
@@ -93,22 +94,52 @@ router.get("/posts", async (req, res, next) => {
 });
 
 // Get all blogs
-router.get("/blogs", async (req, res, next) => {
-  try {
-    const blogs = await getBlogs();
+router.get("/blogs", ensureAuthenticatedAdmin, async (req, res, next) => {
+  const { page, limit } = req.query;
 
-    if (!blogs.length) {
-      return res.status(404).json({
-        statusCode: 404,
-        msg: "No blogs saved in DB!",
-      });
+  try {
+    const blogs = await getBlogs(req.user.id);
+
+    let totalPages;
+
+    if (limit) {
+      if (limit !== "0" && !parseInt(limit)) {
+        return res.status(400).json({
+          statusCode: 400,
+          msg: "Limit must be a number",
+        });
+      }
+
+      totalPages = Math.ceil(blogs.length / limit);
+    } else {
+      totalPages = Math.ceil(blogs.length / 10);
+    }
+
+    if (page) {
+      if (page !== "0" && !parseInt(page)) {
+        return res.status(400).json({
+          statusCode: 400,
+          msg: "Page must be a number",
+        });
+      }
+
+      if (parseInt(page) === 0 || parseInt(page) > totalPages) {
+        return res.status(404).json({
+          statusCode: 404,
+          msg: `Page ${page} not found!`,
+        });
+      }
     }
 
     res.status(200).json({
       statusCode: 200,
-      data: blogs,
+      totalResults: blogs.length,
+      totalPages,
+      page: parseInt(page) || 1,
+      data: await getBlogsPagination(req.user.id, page || 1, limit || 10),
     });
   } catch (error) {
+    console.log(error.message);
     return next(error);
   }
 });
