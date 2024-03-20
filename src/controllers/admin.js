@@ -175,9 +175,98 @@ const getBannedBlogsPagination = async (id, page, limit) => {
   }
 };
 
+// Get not banned blogs
+const getNotBannedBlogs = async (id) => {
+  const results = [];
+  try {
+    const dbResults = await Blog.findAll({
+      attributes: ["id", "name", "isBanned"],
+      include: {
+        model: BlogAccount,
+        attributes: ["id", "email", "username", "isBanned"],
+        where: {
+          id: {
+            [Op.not]: id,
+          },
+        },
+      },
+      where: {
+        isBanned: false,
+      },
+    });
+
+    if (dbResults) {
+      dbResults.forEach((r) => {
+        results.push({
+          id: r.id,
+          name: r.name,
+          isBanned: r.isBanned,
+          account: {
+            id: r.blogAccount.id,
+            email: r.blogAccount.email,
+            username: r.blogAccount.username,
+            isBanned: r.blogAccount.isBanned,
+          },
+        });
+      });
+    }
+
+    return results;
+  } catch (error) {
+    throw new Error("Error trying to get not banned blogs");
+  }
+};
+
+// Get not banned blogs Pagination
+const getNotBannedBlogsPagination = async (id, page, limit) => {
+  const results = [];
+  try {
+    const dbResults = await Blog.findAll({
+      attributes: ["id", "name", "isBanned"],
+      include: {
+        model: BlogAccount,
+        attributes: ["id", "email", "username", "isBanned"],
+        where: {
+          id: {
+            [Op.not]: id,
+          },
+        },
+      },
+      where: {
+        isBanned: false,
+      },
+      order: [["createdAt", "DESC"]],
+      limit,
+      offset: page * limit - limit,
+    });
+
+    if (dbResults) {
+      dbResults.forEach((r) => {
+        results.push({
+          id: r.id,
+          name: r.name,
+          isBanned: r.isBanned,
+          account: {
+            id: r.blogAccount.id,
+            email: r.blogAccount.email,
+            username: r.blogAccount.username,
+            isBanned: r.blogAccount.isBanned,
+          },
+        });
+      });
+    }
+
+    return results;
+  } catch (error) {
+    throw new Error("Error trying to get not banned blogs");
+  }
+};
+
 module.exports = {
   getBlogs,
   getBlogsPagination,
   getBannedBlogs,
   getBannedBlogsPagination,
+  getNotBannedBlogs,
+  getNotBannedBlogsPagination,
 };
