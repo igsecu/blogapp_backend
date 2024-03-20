@@ -424,6 +424,137 @@ const getBlogAccountBlogsPagination = async (id, page, limit) => {
   }
 };
 
+// Get all posts
+const getPosts = async (id) => {
+  const results = [];
+  try {
+    const dbResults = await Post.findAll({
+      attributes: [
+        "id",
+        "title",
+        "text",
+        "isBanned",
+        "readers",
+        "comments_number",
+        "likes_number",
+        "image",
+      ],
+      include: [
+        {
+          model: Blog,
+          attributes: ["id", "name", "isBanned"],
+          include: {
+            model: BlogAccount,
+            attributes: ["id", "username", "email", "isBanned"],
+            where: {
+              id: {
+                [Op.not]: id,
+              },
+            },
+          },
+        },
+      ],
+    });
+
+    if (dbResults) {
+      dbResults.forEach((r) => {
+        results.push({
+          id: r.id,
+          title: r.title,
+          text: r.text,
+          isBanned: r.isBanned,
+          readers: r.readers,
+          likes: r.likes_number,
+          comments: r.comments_number,
+          image: r.image,
+          blog: {
+            id: r.blog.id,
+            name: r.blog.name,
+            isBanned: r.blog.isBanned,
+            account: {
+              id: r.blog.blogAccount.id,
+              username: r.blog.blogAccount.username,
+              image: r.blog.blogAccount.image,
+              isBanned: r.blog.blogAccount.isBanned,
+            },
+          },
+        });
+      });
+    }
+
+    return results;
+  } catch (error) {
+    throw new Error("Error trying to get all posts");
+  }
+};
+
+// Get all posts pagination
+const getPostsPagination = async (id, page, limit) => {
+  const results = [];
+  try {
+    const dbResults = await Post.findAll({
+      attributes: [
+        "id",
+        "title",
+        "text",
+        "isBanned",
+        "readers",
+        "comments_number",
+        "likes_number",
+        "image",
+      ],
+      include: [
+        {
+          model: Blog,
+          attributes: ["id", "name", "isBanned"],
+          include: {
+            model: BlogAccount,
+            attributes: ["id", "username", "email", "isBanned"],
+            where: {
+              id: {
+                [Op.not]: id,
+              },
+            },
+          },
+        },
+      ],
+      order: [["createdAt", "DESC"]],
+      limit,
+      offset: page * limit - limit,
+    });
+
+    if (dbResults) {
+      dbResults.forEach((r) => {
+        results.push({
+          id: r.id,
+          title: r.title,
+          text: r.text,
+          isBanned: r.isBanned,
+          readers: r.readers,
+          likes: r.likes_number,
+          comments: r.comments_number,
+          image: r.image,
+          blog: {
+            id: r.blog.id,
+            name: r.blog.name,
+            isBanned: r.blog.isBanned,
+            account: {
+              id: r.blog.blogAccount.id,
+              username: r.blog.blogAccount.username,
+              image: r.blog.blogAccount.image,
+              isBanned: r.blog.blogAccount.isBanned,
+            },
+          },
+        });
+      });
+    }
+
+    return results;
+  } catch (error) {
+    throw new Error("Error trying to get all posts");
+  }
+};
+
 module.exports = {
   getBlogs,
   getBlogsPagination,
@@ -435,4 +566,6 @@ module.exports = {
   getBlogsAuthPagination,
   getBlogAccountBlogs,
   getBlogAccountBlogsPagination,
+  getPosts,
+  getPostsPagination,
 };
