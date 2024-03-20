@@ -596,6 +596,97 @@ const getAccountsPagination = async (id, page, limit) => {
   }
 };
 
+// Get banned accounts
+const getBannedAccounts = async (id) => {
+  const results = [];
+  try {
+    const accounts = await BlogAccount.findAll({
+      attributes: [
+        "id",
+        "email",
+        "username",
+        "isBanned",
+        "isVerified",
+        "image",
+        "type",
+        "isAdmin",
+      ],
+      where: {
+        id: {
+          [Op.not]: id,
+        },
+        isBanned: true,
+      },
+    });
+
+    if (accounts) {
+      accounts.forEach((r) => {
+        results.push({
+          id: r.id,
+          email: r.email,
+          username: r.username,
+          isBanned: r.isBanned,
+          isVerified: r.isVerified,
+          image: r.image,
+          type: r.type,
+          isAdmin: r.isAdmin,
+        });
+      });
+    }
+
+    return results;
+  } catch (error) {
+    throw new Error("Error trying to get banned accounts");
+  }
+};
+
+// Get all accounts with pagination
+const getBannedAccountsPagination = async (id, page, limit) => {
+  const results = [];
+  try {
+    const accounts = await BlogAccount.findAll({
+      attributes: [
+        "id",
+        "email",
+        "username",
+        "isBanned",
+        "isVerified",
+        "image",
+        "type",
+        "isAdmin",
+      ],
+      where: {
+        id: {
+          [Op.not]: id,
+        },
+        isBanned: true,
+      },
+      order: [["createdAt", "DESC"]],
+      limit,
+      offset: page * limit - limit,
+    });
+
+    if (accounts) {
+      accounts.forEach((r) => {
+        results.push({
+          id: r.id,
+          email: r.email,
+          username: r.username,
+          isBanned: r.isBanned,
+          isVerified: r.isVerified,
+          image: r.image,
+          type: r.type,
+          isAdmin: r.isAdmin,
+        });
+      });
+    }
+
+    return results;
+  } catch (error) {
+    throw new Error("Error trying to get banned accounts");
+  }
+};
+
 module.exports = {
   getBlogAccountById,
   updateUserImage,
@@ -614,4 +705,6 @@ module.exports = {
   getPosts,
   getAccounts,
   getAccountsPagination,
+  getBannedAccounts,
+  getBannedAccountsPagination,
 };
