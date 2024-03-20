@@ -640,7 +640,7 @@ const getBannedAccounts = async (id) => {
   }
 };
 
-// Get all accounts with pagination
+// Get banned accounts with pagination
 const getBannedAccountsPagination = async (id, page, limit) => {
   const results = [];
   try {
@@ -687,6 +687,97 @@ const getBannedAccountsPagination = async (id, page, limit) => {
   }
 };
 
+// Get not banned accounts
+const getNotBannedAccounts = async (id) => {
+  const results = [];
+  try {
+    const accounts = await BlogAccount.findAll({
+      attributes: [
+        "id",
+        "email",
+        "username",
+        "isBanned",
+        "isVerified",
+        "image",
+        "type",
+        "isAdmin",
+      ],
+      where: {
+        id: {
+          [Op.not]: id,
+        },
+        isBanned: false,
+      },
+    });
+
+    if (accounts) {
+      accounts.forEach((r) => {
+        results.push({
+          id: r.id,
+          email: r.email,
+          username: r.username,
+          isBanned: r.isBanned,
+          isVerified: r.isVerified,
+          image: r.image,
+          type: r.type,
+          isAdmin: r.isAdmin,
+        });
+      });
+    }
+
+    return results;
+  } catch (error) {
+    throw new Error("Error trying to get not banned accounts");
+  }
+};
+
+// Get not banned accounts with pagination
+const getNotBannedAccountsPagination = async (id, page, limit) => {
+  const results = [];
+  try {
+    const accounts = await BlogAccount.findAll({
+      attributes: [
+        "id",
+        "email",
+        "username",
+        "isBanned",
+        "isVerified",
+        "image",
+        "type",
+        "isAdmin",
+      ],
+      where: {
+        id: {
+          [Op.not]: id,
+        },
+        isBanned: false,
+      },
+      order: [["createdAt", "DESC"]],
+      limit,
+      offset: page * limit - limit,
+    });
+
+    if (accounts) {
+      accounts.forEach((r) => {
+        results.push({
+          id: r.id,
+          email: r.email,
+          username: r.username,
+          isBanned: r.isBanned,
+          isVerified: r.isVerified,
+          image: r.image,
+          type: r.type,
+          isAdmin: r.isAdmin,
+        });
+      });
+    }
+
+    return results;
+  } catch (error) {
+    throw new Error("Error trying to get not banned accounts");
+  }
+};
+
 module.exports = {
   getBlogAccountById,
   updateUserImage,
@@ -707,4 +798,6 @@ module.exports = {
   getAccountsPagination,
   getBannedAccounts,
   getBannedAccountsPagination,
+  getNotBannedAccounts,
+  getNotBannedAccountsPagination,
 };
