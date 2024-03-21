@@ -23,41 +23,41 @@ module.exports = (passport) => {
 
           if (accountFound) {
             // Match password
-            if (accountFound.type === "LOCAL") {
-              bcrypt.compare(
-                password,
-                accountFound.password,
-                async (err, isMatch) => {
-                  if (err) {
-                    return done(err, null);
-                  }
-                  if (isMatch) {
-                    const account = await usersAccountsServices.getAccountById(
-                      accountFound.id
-                    );
+            bcrypt.compare(
+              password,
+              accountFound.password,
+              async (err, isMatch) => {
+                if (err) {
+                  return done(err, null);
+                }
+                if (isMatch) {
+                  const account = await usersAccountsServices.getAccountById(
+                    accountFound.id
+                  );
 
-                    if (account.isBanned === true) {
-                      return done(null, false, {
-                        statusCode: 400,
-                        msg: "This account is banned! Please contact the admin of the page...",
-                      });
-                    }
-
-                    return done(null, account);
-                  } else {
+                  if (account.isBanned === true) {
                     return done(null, false, {
                       statusCode: 400,
-                      msg: `Incorrect password!`,
+                      msg: "This account is banned! Please contact the admin of the page...",
                     });
                   }
+
+                  if (account.isVerified === false) {
+                    return done(null, false, {
+                      statusCode: 400,
+                      msg: "Please verify your account!",
+                    });
+                  }
+
+                  return done(null, account);
+                } else {
+                  return done(null, false, {
+                    statusCode: 400,
+                    msg: `Incorrect password!`,
+                  });
                 }
-              );
-            } else {
-              return done(null, false, {
-                statusCode: 400,
-                msg: `Incorrect password!`,
-              });
-            }
+              }
+            );
           } else {
             return done(null, false, {
               statusCode: 404,
@@ -89,21 +89,11 @@ module.exports = (passport) => {
                 userFound.id
               );
 
-              if (account.isBanned === true) {
-                return done(null, false, {
-                  statusCode: 400,
-                  msg: "This account is banned! Please contact the admin of the page...",
-                });
-              }
-
-              if (account.type === "GOOGLE") {
-                return done(null, account);
-              }
+              return done(null, account);
             } else {
               const accountCreated =
                 await usersAccountsServices.createAccountFromGithubOrGoogle(
-                  profile.emails[0].value,
-                  "GOOGLE"
+                  profile.emails[0].value
                 );
 
               if (accountCreated) {
@@ -148,21 +138,11 @@ module.exports = (passport) => {
           if (userFound) {
             const account = await usersAccountsServices.get(userFound.id);
 
-            if (account.isBanned === true) {
-              return done(null, false, {
-                statusCode: 400,
-                msg: "This account is banned! Please contact the admin of the page...",
-              });
-            }
-
-            if (account.type === "GITHUB") {
-              return done(null, account);
-            }
+            return done(null, account);
           } else {
             const accountCreated =
               await usersAccountsServices.createAccountFromGithubOrGoogle(
-                profile.emails[0].value,
-                "GITHUB"
+                profile.emails[0].value
               );
 
             if (accountCreated) {
