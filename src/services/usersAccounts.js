@@ -31,6 +31,20 @@ const createAccount = async (hash, email) => {
   }
 };
 
+// Create account from Github or Google
+const createAccountFromGithubOrGoogle = async (email, type) => {
+  try {
+    const accountCreated = await BlogAccount.create({
+      email: email.toLowerCase(),
+      type,
+    });
+
+    return accountCreated;
+  } catch (error) {
+    throw new Error("Error trying to create new account");
+  }
+};
+
 // Get account by id
 const getAccountById = async (id) => {
   try {
@@ -70,4 +84,5 @@ module.exports = {
   checkEmailExists,
   createAccount,
   getAccountById,
+  createAccountFromGithubOrGoogle,
 };
