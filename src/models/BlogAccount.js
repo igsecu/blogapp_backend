@@ -37,10 +37,6 @@ const BlogAccount = db.define(
       type: DataTypes.STRING,
       defaultValue: null,
     },
-    type: {
-      type: DataTypes.STRING,
-      allowNull: false,
-    },
     isAdmin: {
       type: DataTypes.BOOLEAN,
       defaultValue: false,
