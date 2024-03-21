@@ -5,43 +5,10 @@ const PORT = process.env.PORT || 5000;
 
 const router = require("./src/routes/index");
 
-const db = require("./src/db");
+const db = require("./src/database/db");
 
 const session = require("express-session");
 const passport = require("passport");
-
-// Database models
-const Blog = require("./src/models/Blog");
-const Comment = require("./src/models/Comment");
-const Like = require("./src/models/Like");
-const Notification = require("./src/models/Notification");
-const Post = require("./src/models/Post");
-const BlogAccount = require("./src/models/BlogAccount");
-const Token = require("./src/models/Token");
-
-BlogAccount.hasMany(Blog);
-Blog.belongsTo(BlogAccount);
-
-Blog.hasMany(Post);
-Post.belongsTo(Blog);
-
-BlogAccount.hasMany(Like);
-Like.belongsTo(BlogAccount);
-
-Post.hasMany(Like);
-Like.belongsTo(Post);
-
-BlogAccount.hasMany(Notification);
-Notification.belongsTo(BlogAccount);
-
-Post.hasMany(Comment);
-Comment.belongsTo(Post);
-
-BlogAccount.hasMany(Comment);
-Comment.belongsTo(BlogAccount);
-
-BlogAccount.hasOne(Token);
-Token.belongsTo(BlogAccount);
 
 // Body-Parser middleware
 app.use(express.json());
