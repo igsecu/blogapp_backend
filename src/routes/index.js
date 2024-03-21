@@ -2,8 +2,12 @@ const express = require("express");
 const router = express.Router();
 
 const blogRouter = require("./blogs");
+const usersRouter = require("./users");
+const loginRouter = require("./login");
 
 // Specify routers root routes
-router.use("/api", blogRouter);
+router.use("/", loginRouter);
+router.use("/users", usersRouter);
+/* router.use("/api", blogRouter); */
 
 module.exports = router;
