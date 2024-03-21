@@ -136,7 +136,9 @@ module.exports = (passport) => {
           );
 
           if (userFound) {
-            const account = await usersAccountsServices.get(userFound.id);
+            const account = await usersAccountsServices.getAccountById(
+              userFound.id
+            );
 
             return done(null, account);
           } else {
