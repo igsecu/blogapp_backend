@@ -203,13 +203,39 @@ const logout = async (req, res, next) => {
   });
 };
 
-// Google Authentication
-const authenticateGoogle = async () => {
-  await passport.authenticate("google", { scope: ["profile", "email"] });
-};
-
 // Google Callback
 const googleCallback = async (req, res, next) => {
+  if (req.user) {
+    const accountFound = await usersAccountsServices.getAccountById(
+      req.user.id
+    );
+
+    if (accountFound.isBanned === true) {
+      return res.status(400).json({
+        statusCode: 400,
+        msg: "This account is banned! Please contact the admin of the page...",
+      });
+    }
+
+    if (accountFound.isVerified === false) {
+      return res.status(400).json({
+        statusCode: 400,
+        msg: "Please verify your account!",
+      });
+    }
+
+    return res.status(200).json({
+      statusCode: 200,
+      msg: "You logged in successfully",
+      data: accountFound,
+    });
+  } else {
+    return next("Error trying to authenticate with Google");
+  }
+};
+
+// Github Callback
+const githubCallback = async (req, res, next) => {
   if (req.user) {
     const accountFound = await usersAccountsServices.getAccountById(
       req.user.id
@@ -295,7 +321,7 @@ module.exports = {
   login,
   getLoggedInAccount,
   logout,
-  authenticateGoogle,
   googleCallback,
+  githubCallback,
   verifyAccount,
 };
