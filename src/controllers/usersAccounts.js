@@ -1,17 +1,6 @@
 const bcrypt = require("bcryptjs");
-const passport = require("passport");
-const uuid = require("uuid");
-const { Op } = require("sequelize");
 
 require("dotenv").config();
-
-const Blog = require("../models/Blog");
-const Post = require("../models/Post");
-const Comment = require("../models/Comment");
-const Notification = require("../models/Notification");
-const Like = require("../models/Like");
-const BlogAccount = require("../models/BlogAccount");
-const Token = require("../models/Token");
 
 const { uploadProfileImage } = require("../utils/cloudinary");
 
@@ -24,14 +13,12 @@ const {
   validateEmail,
   validatePasswordConfirmation,
   validateImageSize,
-  validateName,
-  validateText,
-  validateTitle,
 } = require("../utils/index");
 
 const usersAccountsServices = require("../services/usersAccounts");
 const notificationsServices = require("../services/notifications");
 const emailsServices = require("../services/emails");
+const tokenServices = require("../services/token");
 
 // Create new user account
 const createAccount = async (req, res, next) => {
@@ -380,6 +367,59 @@ const deleteAccount = async (req, res, next) => {
   }
 };
 
+// Request Password
+const requestPassword = async (req, res, next) => {
+  const { email } = req.body;
+
+  try {
+    if (validateEmail(email)) {
+      return res.status(400).json({
+        statusCode: 400,
+        msg: validateEmail(email),
+      });
+    }
+
+    const emailExist = await usersAccountsServices.checkEmailExists(email);
+
+    if (!emailExist) {
+      return res.status(404).json({
+        statusCode: 404,
+        msg: `No user account with email: ${email} exists!`,
+      });
+    }
+
+    if (emailExist.dataValues.isBanned === true) {
+      return res.status(400).json({
+        statusCode: 400,
+        msg: "This account is banned! You can not reset your password...",
+      });
+    }
+
+    const tokenExist = await tokenServices.tokenExists(
+      emailExist.dataValues.id
+    );
+
+    if (tokenExist) {
+      await tokenServices.deleteToken(tokenExist.dataValues.id);
+    }
+
+    const newToken = await tokenServices.createToken(emailExist.dataValues.id);
+
+    const url = `${process.env.URL}/account/reset/password?token=${newToken.token}&accountId=${emailExist.dataValues.id}`;
+
+    //await emailsServices.sendEmailRequestPassword(url, email);
+
+    return res.status(200).json({
+      statusCode: 200,
+      msg: "Check your email to reset your password!",
+      token: newToken.token,
+      accountId: emailExist.dataValues.id,
+    });
+  } catch (error) {
+    return next("Error sending link to reset password");
+  }
+};
+
 module.exports = {
   createAccount,
   googleCallback,
@@ -389,4 +429,5 @@ module.exports = {
   updateUserImage,
   deleteUserImage,
   deleteAccount,
+  requestPassword,
 };
