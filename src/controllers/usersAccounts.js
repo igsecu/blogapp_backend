@@ -395,6 +395,13 @@ const requestPassword = async (req, res, next) => {
       });
     }
 
+    if (emailExist.dataValues.isVerified === false) {
+      return res.status(400).json({
+        statusCode: 400,
+        msg: "Please verify your account before reseting your password!",
+      });
+    }
+
     const tokenExist = await tokenServices.tokenExists(
       emailExist.dataValues.id
     );
@@ -412,11 +419,127 @@ const requestPassword = async (req, res, next) => {
     return res.status(200).json({
       statusCode: 200,
       msg: "Check your email to reset your password!",
-      token: newToken.token,
+      token: newToken,
       accountId: emailExist.dataValues.id,
     });
   } catch (error) {
     return next("Error sending link to reset password");
+  }
+};
+
+// Reset Password
+const resetPassword = async (req, res, next) => {
+  const { token, accountId, password, password2 } = req.body;
+
+  try {
+    if (!accountId) {
+      return res.status(400).json({
+        statusCode: 400,
+        msg: "accountId is missing",
+      });
+    }
+
+    if (!validateId(accountId)) {
+      return res.status(400).json({
+        statusCode: 400,
+        msg: `accountId: ${accountId} - Invalid format!`,
+      });
+    }
+
+    const account = await usersAccountsServices.getAccountById(accountId);
+
+    if (!account) {
+      return res.status(404).json({
+        statusCode: 404,
+        msg: `Account with ID: ${accountId} not found!`,
+      });
+    }
+
+    if (account.isBanned === true) {
+      return res.status(400).json({
+        statusCode: 400,
+        msg: "This account is banned! You can not reset its password...",
+      });
+    }
+
+    if (!token) {
+      return res.status(400).json({
+        statusCode: 400,
+        msg: "Token is missing",
+      });
+    }
+
+    const tokenExists = await tokenServices.tokenExists(accountId);
+
+    if (!tokenExists) {
+      return res.status(404).json({
+        statusCode: 404,
+        msg: `Token for the account: ${accountId} not found!`,
+      });
+    }
+
+    if (tokenExists.dataValues.token !== token.token) {
+      return res.status(400).json({
+        statusCode: 400,
+        msg: "Invalid token!",
+      });
+    }
+
+    if (tokenServices.checkIfExpires(tokenExists)) {
+      return res.status(400).json({
+        statusCode: 400,
+        msg: "Token time expired!",
+      });
+    }
+
+    if (validatePassword(password)) {
+      return res.status(400).json({
+        statusCode: 400,
+        msg: validatePassword(password),
+      });
+    }
+
+    if (validatePasswordConfirmation(password, password2)) {
+      return res.status(400).json({
+        statusCode: 400,
+        msg: validatePasswordConfirmation(password, password2),
+      });
+    }
+
+    // Hash Password
+    bcrypt.genSalt(10, (err, salt) => {
+      bcrypt.hash(password, salt, async (err, hash) => {
+        if (err) {
+          return next("Error trying to reset password");
+        }
+        try {
+          const updatedAccount = await usersAccountsServices.updatePassword(
+            accountId,
+            hash
+          );
+
+          if (updatedAccount) {
+            /*  await emailsServices.sendEmailPasswordConfirmation(
+              updatedAccount.email
+            ); */
+
+            await tokenServices.deleteToken(token.id);
+
+            return res.status(200).json({
+              statusCode: 200,
+              data: account,
+              msg: "Password reseted successfully!",
+            });
+          }
+        } catch (error) {
+          console.log(error.message);
+          return next("Error trying to reset user account password");
+        }
+      });
+    });
+  } catch (error) {
+    console.log(error);
+    return next(error);
   }
 };
 
@@ -430,4 +553,5 @@ module.exports = {
   deleteUserImage,
   deleteAccount,
   requestPassword,
+  resetPassword,
 };
