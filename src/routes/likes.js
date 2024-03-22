@@ -5,11 +5,11 @@ const usersLikesController = require("../controllers/usersLikes");
 
 const { ensureAuthenticatedUser } = require("../utils/index");
 
-// Create new comment
+// Create new like
 router.post(
-  "/comment",
+  "/like/post/:id",
   ensureAuthenticatedUser,
-  usersCommentsController.createComment
+  usersLikesController.createLike
 );
 
 module.exports = router;
