@@ -26,5 +26,11 @@ router.put(
   ensureAuthenticatedUser,
   usersPostsController.updatePostImage
 );
+// Update post
+router.put(
+  "/post/:id",
+  ensureAuthenticatedUser,
+  usersPostsController.updatePost
+);
 
 module.exports = router;
