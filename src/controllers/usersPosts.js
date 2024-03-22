@@ -144,7 +144,7 @@ const createPost = async (req, res, next) => {
   }
 };
 
-// Updated post image
+// Update post image
 const updatePostImage = async (req, res, next) => {
   const { id } = req.params;
   try {
@@ -229,7 +229,72 @@ const updatePostImage = async (req, res, next) => {
   }
 };
 
+// Update post
+const updatePost = async (req, res, next) => {
+  const { title, text } = req.query;
+  const { id } = req.params;
+
+  let postUpdated;
+
+  try {
+    if (!validateId(id)) {
+      return res.status(400).json({
+        statusCode: 400,
+        msg: `ID: ${id} - Invalid format!`,
+      });
+    }
+
+    const post = await usersPostsServices.getPostById(id);
+
+    if (!post) {
+      return res.status(404).json({
+        statusCode: 404,
+        msg: `Post with ID: ${id} not found!`,
+      });
+    }
+
+    if (post.blog.account.id !== req.user.id) {
+      return res.status(400).json({
+        statusCode: 400,
+        msg: "You can not update a post that is not yours!",
+      });
+    }
+
+    if (post.isBanned === true) {
+      return res.status(400).json({
+        statusCode: 400,
+        msg: "This post is banned! You can not update it...",
+      });
+    }
+
+    if (title) {
+      postUpdated = await usersPostsServices.updatePostTitle(id, title);
+    }
+
+    if (text) {
+      postUpdated = await usersPostsServices.updatePostText(id, text);
+    }
+
+    if (!title && !text) {
+      return res.status(400).json({
+        statusCode: 400,
+        msg: "Query parameter is missing",
+      });
+    }
+
+    res.status(200).json({
+      statusCode: 200,
+      msg: "Post updated successfully!",
+      data: postUpdated,
+    });
+  } catch (error) {
+    console.log(error);
+    return next("Error trying to update post");
+  }
+};
+
 module.exports = {
   createPost,
   updatePostImage,
+  updatePost,
 };
