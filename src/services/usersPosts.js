@@ -82,7 +82,40 @@ const createPost = async (title, text, blogId, image, image_id) => {
   }
 };
 
+// Update post image
+const updatePostImage = async (id, image, image_id) => {
+  try {
+    const post = await Post.findByPk(id);
+
+    if (post.image_id !== null) {
+      await deleteImage(post.image_id);
+    }
+
+    const updatedPost = await Post.update(
+      {
+        image,
+        image_id,
+      },
+      {
+        where: {
+          id,
+        },
+      }
+    );
+
+    if (updatedPost[0] === 1) {
+      const post = await getPostById(id);
+
+      return post;
+    }
+  } catch (error) {
+    console.log(error.message);
+    throw new Error("Error trying to update the post image!");
+  }
+};
+
 module.exports = {
   getPostById,
   createPost,
+  updatePostImage,
 };
