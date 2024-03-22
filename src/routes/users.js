@@ -7,6 +7,8 @@ const usersAccountsController = require("../controllers/usersAccounts");
 
 const { ensureAuthenticatedUser } = require("../utils/index");
 
+const fileUpload = require("express-fileupload");
+
 // Github Callback
 router.get(
   "/auth/github/callback",
@@ -38,6 +40,16 @@ router.put(
   "/account/username",
   ensureAuthenticatedUser,
   usersAccountsController.updateUsername
+);
+// Updated user account image
+router.put(
+  "/account/image",
+  fileUpload({
+    useTempFiles: true,
+    tempFileDir: `${__dirname}/../../uploads`,
+  }),
+  ensureAuthenticatedUser,
+  usersAccountsController.updateUserImage
 );
 
 module.exports = router;
