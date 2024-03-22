@@ -1,3 +1,4 @@
+const { Op } = require("sequelize");
 const BlogAccount = require("../models/BlogAccount");
 
 // Check if email exists
@@ -101,10 +102,53 @@ const updateIsVerifiedAccount = async (id) => {
   }
 };
 
+// Check if username exists
+const checkUsernameExists = async (username) => {
+  try {
+    const usernameExists = await BlogAccount.findOne({
+      where: {
+        username: {
+          [Op.iLike]: `@${username}`,
+        },
+      },
+    });
+
+    return usernameExists;
+  } catch (error) {
+    throw new Error("Error trying to check if username exists");
+  }
+};
+
+// Update username
+const updateUsername = async (id, username) => {
+  try {
+    const updatedAccount = await BlogAccount.update(
+      {
+        username: username.trim(),
+      },
+      {
+        where: {
+          id,
+        },
+      }
+    );
+
+    if (updatedAccount[0] === 1) {
+      const account = await getAccountById(id);
+
+      return account;
+    }
+  } catch (error) {
+    throw new Error("Error trying to update user account username");
+  }
+};
+
 module.exports = {
   checkEmailExists,
   createAccount,
   getAccountById,
   createAccountFromGithubOrGoogle,
   updateIsVerifiedAccount,
+  checkUsernameExists,
+  updateUsername,
 };
