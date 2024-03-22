@@ -5,6 +5,8 @@ const passport = require("passport");
 
 const usersAccountsController = require("../controllers/usersAccounts");
 
+const { ensureAuthenticatedUser } = require("../utils/index");
+
 // Github Callback
 router.get(
   "/auth/github/callback",
@@ -31,5 +33,11 @@ router.get(
 router.get("/account/:id/verify", usersAccountsController.verifyAccount);
 // Create new user account
 router.post("/account", usersAccountsController.createAccount);
+// Update user account username
+router.put(
+  "/account/username",
+  ensureAuthenticatedUser,
+  usersAccountsController.updateUsername
+);
 
 module.exports = router;
