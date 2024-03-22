@@ -46,8 +46,18 @@ const createToken = async (id) => {
   }
 };
 
+// Check if token expires
+const checkIfExpires = (token) => {
+  const tokenTime = token.dataValues.createdAt.getTime();
+  const expireTime = tokenTime + 3600 * 1000;
+  const currentTime = new Date().getTime();
+
+  return currentTime >= expireTime;
+};
+
 module.exports = {
   tokenExists,
   deleteToken,
   createToken,
+  checkIfExpires,
 };
