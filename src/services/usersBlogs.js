@@ -69,7 +69,34 @@ const createBlog = async (id, name) => {
   }
 };
 
+// Update blog name
+const updateBlogName = async (id, name) => {
+  try {
+    const updatedBlog = await Blog.update(
+      {
+        name,
+      },
+      {
+        where: {
+          id,
+        },
+      }
+    );
+
+    if (updatedBlog[0] === 1) {
+      const blog = await getBlogById(id);
+
+      return blog;
+    }
+  } catch (error) {
+    console.log(error.message);
+    throw new Error("Error trying to update blog name!");
+  }
+};
+
 module.exports = {
   checkBlogExists,
   createBlog,
+  getBlogById,
+  updateBlogName,
 };
