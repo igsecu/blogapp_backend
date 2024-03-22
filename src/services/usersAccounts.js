@@ -1,6 +1,8 @@
 const { Op } = require("sequelize");
 const BlogAccount = require("../models/BlogAccount");
 
+const { deleteImage } = require("../utils/cloudinary");
+
 // Check if email exists
 const checkEmailExists = async (email) => {
   try {
@@ -124,7 +126,7 @@ const updateUsername = async (id, username) => {
   try {
     const updatedAccount = await BlogAccount.update(
       {
-        username: username.trim(),
+        username: username,
       },
       {
         where: {
@@ -143,6 +145,38 @@ const updateUsername = async (id, username) => {
   }
 };
 
+// Update user image
+const updateUserImage = async (id, image, image_id) => {
+  try {
+    const account = await BlogAccount.findByPk(id);
+
+    if (account.image_id !== null) {
+      await deleteImage(account.image_id);
+    }
+
+    const updatedAccount = await BlogAccount.update(
+      {
+        image,
+        image_id,
+      },
+      {
+        where: {
+          id,
+        },
+      }
+    );
+
+    if (updatedAccount[0] === 1) {
+      const account = await getAccountById(id);
+
+      return account;
+    }
+  } catch (error) {
+    console.log(error.message);
+    throw new Error("Error trying to update the user account profile image!");
+  }
+};
+
 module.exports = {
   checkEmailExists,
   createAccount,
@@ -151,4 +185,5 @@ module.exports = {
   updateIsVerifiedAccount,
   checkUsernameExists,
   updateUsername,
+  updateUserImage,
 };
