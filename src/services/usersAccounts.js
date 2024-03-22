@@ -177,6 +177,40 @@ const updateUserImage = async (id, image, image_id) => {
   }
 };
 
+// Delete user image
+const deleteUserImage = async (id) => {
+  try {
+    const account = await BlogAccount.findByPk(id);
+
+    if (account.image_id === null) {
+      return null;
+    }
+
+    await deleteImage(account.image_id);
+
+    const updatedAccount = await BlogAccount.update(
+      {
+        image: null,
+        image_id: null,
+      },
+      {
+        where: {
+          id,
+        },
+      }
+    );
+
+    if (updatedAccount[0] === 1) {
+      const account = await getAccountById(id);
+
+      return account;
+    }
+  } catch (error) {
+    console.log(error.message);
+    throw new Error("Error trying to delete user profile image");
+  }
+};
+
 module.exports = {
   checkEmailExists,
   createAccount,
@@ -186,4 +220,5 @@ module.exports = {
   checkUsernameExists,
   updateUsername,
   updateUserImage,
+  deleteUserImage,
 };
