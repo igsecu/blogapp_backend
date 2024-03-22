@@ -51,5 +51,11 @@ router.put(
   ensureAuthenticatedUser,
   usersAccountsController.updateUserImage
 );
+// Delete user account image
+router.delete(
+  "/account/image",
+  ensureAuthenticatedUser,
+  usersAccountsController.deleteUserImage
+);
 
 module.exports = router;
