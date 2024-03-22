@@ -16,5 +16,15 @@ router.post(
   ensureAuthenticatedUser,
   usersPostsController.createPost
 );
+// Update post image
+router.put(
+  "/post/:id/image",
+  fileUpload({
+    useTempFiles: true,
+    tempFileDir: `${__dirname}/../../uploads`,
+  }),
+  ensureAuthenticatedUser,
+  usersPostsController.updatePostImage
+);
 
 module.exports = router;
