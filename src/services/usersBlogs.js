@@ -94,9 +94,46 @@ const updateBlogName = async (id, name) => {
   }
 };
 
+// Delete blog
+const deleteBlog = async (id) => {
+  try {
+    const blog = await getBlogById(id);
+
+    /* 
+      const results = await getBlogPosts(id);
+  
+      for (let r of results) {
+        const post = await Post.findByPk(r.id);
+  
+        if (post.image_id !== null) {
+          await deleteImage(post.image_id);
+        }
+  
+        await Post.destroy({
+          where: {
+            id: r.id,
+          },
+        });
+      } */
+
+    const blogDeleted = await Blog.destroy({
+      where: {
+        id,
+      },
+    });
+
+    if (blogDeleted) {
+      return blog;
+    }
+  } catch (error) {
+    throw new Error("Error trying to delete a blog");
+  }
+};
+
 module.exports = {
   checkBlogExists,
   createBlog,
   getBlogById,
   updateBlogName,
+  deleteBlog,
 };
