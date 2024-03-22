@@ -9,7 +9,7 @@ const adminRouter = require("./admin");
 // Specify routers root routes
 router.use("/", loginRouter);
 router.use("/users", usersRouter);
+router.use("/users", blogsRouter);
 router.use("/admin", adminRouter);
-router.use("/blogs", blogsRouter);
 
 module.exports = router;
