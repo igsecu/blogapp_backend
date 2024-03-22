@@ -228,9 +228,63 @@ const verifyAccount = async (req, res, next) => {
   }
 };
 
+// Update username
+const updateUsername = async (req, res, next) => {
+  const { value } = req.query;
+
+  try {
+    if (!value) {
+      return res.status(400).json({
+        statusCode: 400,
+        msg: "Query parameter is missing!",
+      });
+    }
+
+    if (value.length < 4) {
+      return res.status(400).json({
+        statusCode: 400,
+        msg: "Username must be at least 4 characters long!",
+      });
+    }
+
+    const usernameExist = await usersAccountsServices.checkUsernameExists(
+      value
+    );
+
+    if (usernameExist) {
+      return res.status(400).json({
+        statusCode: 400,
+        msg: `Username "${value}" exists! Try with another one!`,
+      });
+    }
+
+    const updatedAccount = await usersAccountsServices.updateUsername(
+      req.user.id,
+      `@${value.toLowerCase().split(" ").join("")}`
+    );
+
+    if (updatedAccount) {
+      await notificationsServices.createNotification(
+        req.user.id,
+        "Your username was updated successfully!"
+      );
+
+      return res.status(200).json({
+        statusCode: 200,
+        msg: "Your username was updated successfully!",
+        data: updatedAccount,
+      });
+    }
+  } catch (error) {
+    console.log(error);
+    return next("Error trying to update user account username");
+  }
+};
+
 module.exports = {
   createAccount,
   googleCallback,
   githubCallback,
   verifyAccount,
+  updateUsername,
 };
