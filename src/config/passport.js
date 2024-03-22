@@ -42,7 +42,10 @@ module.exports = (passport) => {
                     });
                   }
 
-                  if (account.isVerified === false) {
+                  if (
+                    account.isAdmin === false &&
+                    account.isVerified === false
+                  ) {
                     return done(null, false, {
                       statusCode: 400,
                       msg: "Please verify your account!",
