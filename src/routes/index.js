@@ -1,7 +1,7 @@
 const express = require("express");
 const router = express.Router();
 
-const blogRouter = require("./blogs");
+const blogsRouter = require("./blogs");
 const usersRouter = require("./users");
 const loginRouter = require("./login");
 const adminRouter = require("./admin");
@@ -10,6 +10,6 @@ const adminRouter = require("./admin");
 router.use("/", loginRouter);
 router.use("/users", usersRouter);
 router.use("/admin", adminRouter);
-/* router.use("/api", blogRouter); */
+router.use("/blogs", blogsRouter);
 
 module.exports = router;
