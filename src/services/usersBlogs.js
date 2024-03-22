@@ -172,4 +172,5 @@ module.exports = {
   getBlogById,
   updateBlogName,
   deleteBlog,
+  getBlogPosts,
 };
