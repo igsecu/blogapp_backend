@@ -114,8 +114,60 @@ const updatePostImage = async (id, image, image_id) => {
   }
 };
 
+// Update post title
+const updatePostTitle = async (id, title) => {
+  try {
+    const updatedPost = await Post.update(
+      {
+        title,
+      },
+      {
+        where: {
+          id,
+        },
+      }
+    );
+
+    if (updatedPost[0] === 1) {
+      const post = await getPostById(id);
+
+      return post;
+    }
+  } catch (error) {
+    console.log(error.message);
+    throw new Error("Error trying to update post title!");
+  }
+};
+
+// Update post text
+const updatePostText = async (id, text) => {
+  try {
+    const updatedPost = await Post.update(
+      {
+        text,
+      },
+      {
+        where: {
+          id,
+        },
+      }
+    );
+
+    if (updatedPost[0] === 1) {
+      const post = await getPostById(id);
+
+      return post;
+    }
+  } catch (error) {
+    console.log(error.message);
+    throw new Error("Error trying to update post text!");
+  }
+};
+
 module.exports = {
   getPostById,
   createPost,
   updatePostImage,
+  updatePostText,
+  updatePostTitle,
 };
