@@ -4,6 +4,8 @@ const Post = require("../models/Post");
 
 const { Op } = require("sequelize");
 
+const { deleteImage } = require("../utils/cloudinary");
+
 // Get post by id
 const getPostById = async (id) => {
   try {
@@ -164,10 +166,45 @@ const updatePostText = async (id, text) => {
   }
 };
 
+// Delete post image
+const deletePostImage = async (id) => {
+  try {
+    const post = await Post.findByPk(id);
+
+    if (post.image_id === null) {
+      return null;
+    }
+
+    await deleteImage(post.image_id);
+
+    const updatedPost = await Post.update(
+      {
+        image: null,
+        image_id: null,
+      },
+      {
+        where: {
+          id,
+        },
+      }
+    );
+
+    if (updatedPost[0] === 1) {
+      const post = await getPostById(id);
+
+      return post;
+    }
+  } catch (error) {
+    console.log(error.message);
+    throw new Error("Error trying to delete post image");
+  }
+};
+
 module.exports = {
   getPostById,
   createPost,
   updatePostImage,
   updatePostText,
   updatePostTitle,
+  deletePostImage,
 };
