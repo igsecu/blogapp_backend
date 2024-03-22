@@ -339,9 +339,57 @@ const deletePostImage = async (req, res, next) => {
   }
 };
 
+// Delete post
+const deletePost = async (req, res, next) => {
+  const { id } = req.params;
+
+  try {
+    if (!validateId(id)) {
+      return res.status(400).json({
+        statusCode: 400,
+        msg: `ID: ${id} - Invalid format!`,
+      });
+    }
+
+    const post = await usersPostsServices.getPostById(id);
+
+    if (!post) {
+      return res.status(404).json({
+        statusCode: 404,
+        msg: `Post with ID: ${id} not found!`,
+      });
+    }
+
+    if (post.blog.account.id !== req.user.id) {
+      return res.status(400).json({
+        statusCode: 400,
+        msg: "You can not delete a post that is not yours!",
+      });
+    }
+
+    const postToDelete = await usersPostsServices.deletePost(id);
+
+    if (postToDelete) {
+      await notificationsServices.createNotification(
+        req.user.id,
+        `Post: ${post.title} was deleted successfully!`
+      );
+
+      return res.status(200).json({
+        statusCode: 200,
+        msg: "Post deleted successfully!",
+        data: postToDelete,
+      });
+    }
+  } catch (error) {
+    return next("Error trying to delete a post");
+  }
+};
+
 module.exports = {
   createPost,
   updatePostImage,
   updatePost,
   deletePostImage,
+  deletePost,
 };
