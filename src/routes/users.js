@@ -35,6 +35,8 @@ router.get(
 router.get("/account/:id/verify", usersAccountsController.verifyAccount);
 // Create new user account
 router.post("/account", usersAccountsController.createAccount);
+// Request password change
+router.post("/request/password", usersAccountsController.requestPassword);
 // Update user account username
 router.put(
   "/account/username",
