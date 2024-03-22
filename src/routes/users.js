@@ -57,5 +57,11 @@ router.delete(
   ensureAuthenticatedUser,
   usersAccountsController.deleteUserImage
 );
+// Delete account
+router.delete(
+  "/account",
+  ensureAuthenticatedUser,
+  usersAccountsController.deleteAccount
+);
 
 module.exports = router;
