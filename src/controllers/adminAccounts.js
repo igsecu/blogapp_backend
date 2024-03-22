@@ -87,7 +87,7 @@ const createAccount = async (req, res, next) => {
 };
 
 // Ban user account
-const updateAccount = async (req, res, next) => {
+const banAccount = async (req, res, next) => {
   const { id } = req.params;
 
   try {
@@ -120,7 +120,42 @@ const updateAccount = async (req, res, next) => {
   }
 };
 
+// not Ban user account
+const notBanAccount = async (req, res, next) => {
+  const { id } = req.params;
+
+  try {
+    if (!validateId(id)) {
+      return res.status(400).json({
+        statusCode: 400,
+        msg: `ID: ${id} - Invalid format!`,
+      });
+    }
+
+    const accountFound = await usersAccountsServices.getAccountById(id);
+
+    if (!accountFound) {
+      return res.status(404).json({
+        statusCode: 404,
+        msg: `Account with ID: ${id} not found!`,
+      });
+    }
+
+    const updatedAccount = await adminAccountsServices.notBanAccount(id);
+
+    if (updatedAccount) {
+      return res.status(200).json({
+        statusCode: 200,
+        msg: "Account updated successfully!",
+      });
+    }
+  } catch (error) {
+    return next("Error trying to not ban an account");
+  }
+};
+
 module.exports = {
   createAccount,
   banAccount,
+  notBanAccount,
 };
