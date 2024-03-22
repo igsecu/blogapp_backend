@@ -10,7 +10,12 @@ router.post("/account", adminAccountsController.createAccount);
 router.put(
   "/account/:id/banned/true",
   ensureAuthenticatedAdmin,
-  adminAccountsController.updateAccount
+  adminAccountsController.banAccount
+);
+router.put(
+  "/account/:id/banned/false",
+  ensureAuthenticatedAdmin,
+  adminAccountsController.notBanAccount
 );
 
 module.exports = router;
