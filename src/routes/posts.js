@@ -38,5 +38,11 @@ router.delete(
   ensureAuthenticatedUser,
   usersPostsController.deletePostImage
 );
+// Delete post
+router.delete(
+  "/post/:id",
+  ensureAuthenticatedUser,
+  usersPostsController.deletePost
+);
 
 module.exports = router;
