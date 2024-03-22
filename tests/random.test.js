@@ -1,6 +1,6 @@
 const request = require("supertest");
 const app = require("../index");
-const db = require("../src/db");
+const db = require("../src/database/db");
 
 const Blog = require("../src/models/Blog");
 const Comment = require("../src/models/Comment");
@@ -13,13 +13,13 @@ const Token = require("../src/models/Token");
 beforeAll(async () => {
   try {
     await db.sync({});
-    /*  await Blog.sync({ force: true });
+    await Blog.sync({ force: true });
     await Comment.sync({ force: true });
     await Like.sync({ force: true });
     await Notification.sync({ force: true });
     await Post.sync({ force: true });
     await BlogAccount.sync({ force: true });
-    await Token.sync({ force: true }); */
+    await Token.sync({ force: true });
   } catch (error) {
     console.log(error.message);
   }
@@ -32,7 +32,7 @@ afterAll((done) => {
 
 let cookie;
 
-/* describe("POST /api/account route -> create new user", () => {
+describe("POST /api/users/account route -> create new user", () => {
   for (let x = 1; x <= 20; x++) {
     it("it should return 201 status code -> create new account successfully", async () => {
       const user = {
@@ -41,10 +41,31 @@ let cookie;
         password2: "F4k3ap1s.io",
       };
 
-      const response = await request(app).post("/api/account").send(user);
+      const response = await request(app).post("/api/users/account").send(user);
 
       expect(response.status).toBe(201);
       expect(response.body.msg).toBe("Account created successfully!");
+    });
+  }
+});
+
+let accounts;
+
+describe("GET /accounts route -> get all accounts", () => {
+  it("it should return 200 status code", async () => {
+    const response = await request(app).get("/api/admin/accounts");
+    expect(response.status).toBe(200);
+    accounts = response.body.data;
+  });
+});
+
+describe("GET /api/users/account/:id/verify -> verify account", () => {
+  for (let x = 0; x < 20; x++) {
+    it("it should return 200 status code -> verify account success", async () => {
+      const response = await request(app).get(
+        `/api/users/account/${accounts[x].id}/verify`
+      );
+      expect(response.status).toBe(200);
     });
   }
 });
@@ -60,13 +81,14 @@ describe("POST /blog route -> create new blog", () => {
       };
 
       const response = await request(app).post("/api/login").send(user);
+      console.log(response.body);
       expect(response.status).toBe(200);
       expect(response.body.msg).toBe("You logged in successfully");
       cookie = response.headers["set-cookie"];
     });
     it("it should return 201 status code -> blog created", async () => {
       const response = await request(app)
-        .post("/api/blog")
+        .post("/api/users/blog")
         .send({
           name: `Blog ${x}`,
         })
@@ -84,7 +106,15 @@ describe("POST /blog route -> create new blog", () => {
   }
 });
 
+let blogs;
 
+describe("GET /blogs route -> get all blogs", () => {
+  it("it should return 200 status code", async () => {
+    const response = await request(app).get("/api/admin/blogs");
+    expect(response.status).toBe(200);
+    blogs = response.body.data;
+  });
+});
 
 describe("POST /post route -> create new post", () => {
   for (let x = 1; x <= 1000; x++) {
@@ -105,7 +135,7 @@ describe("POST /post route -> create new post", () => {
     });
     it("it should return 201 status code -> post created", async () => {
       const response = await request(app)
-        .post("/api/post")
+        .post("/api/users/post")
         .set("Cookie", cookie)
         .send({
           title: `Post ${x}`,
@@ -122,42 +152,20 @@ describe("POST /post route -> create new post", () => {
       expect(response.body.msg).toBe("You successfully logged out!");
     });
   }
-}); */
-
-let blogs;
-
-describe("GET /blogs route -> get all blogs", () => {
-  it("it should return 200 status code", async () => {
-    const response = await request(app).get("/api/blogs");
-    expect(response.status).toBe(200);
-    blogs = response.body.data;
-  });
 });
 
 let posts;
 
 describe("GET /posts route -> get all posts", () => {
   it("it should return 200 status code", async () => {
-    const response = await request(app).get("/api/posts");
+    const response = await request(app).get("/api/admin/posts");
     expect(response.status).toBe(200);
     posts = response.body.data;
-    console.log(posts);
   });
 });
 
-let accounts;
-
-describe("GET /posts route -> get all accounts", () => {
-  it("it should return 200 status code", async () => {
-    const response = await request(app).get("/api/accounts");
-    expect(response.status).toBe(200);
-    accounts = response.body.data;
-    console.log(accounts);
-  });
-});
-
-/* describe("POST /like/post/:id route -> create new like", () => {
-  for (let x = 0; x < 999; x++) {
+describe("POST /like/post/:id route -> create new like", () => {
+  for (let x = 0; x < 1000; x++) {
     const number = Math.floor(Math.random() * (20 - 1) + 1);
 
     it("it should return 200 status code -> user logged in", async () => {
@@ -175,7 +183,7 @@ describe("GET /posts route -> get all accounts", () => {
       const position = Math.floor(Math.random() * 50);
 
       const response = await request(app)
-        .post(`/api/like/post/${posts[position].id}`)
+        .post(`/api/users/like/post/${posts[position].id}`)
         .set("Cookie", cookie);
       expect(response.status).toBe(201);
     });
@@ -187,10 +195,10 @@ describe("GET /posts route -> get all accounts", () => {
       expect(response.body.msg).toBe("You successfully logged out!");
     });
   }
-}); */
+});
 
-/* describe("POST /comment route -> create new comment", () => {
-  for (let x = 2; x <= 500; x++) {
+describe("POST /comment route -> create new comment", () => {
+  for (let x = 1; x <= 500; x++) {
     const number = Math.floor(Math.random() * (20 - 1) + 1);
 
     it("it should return 200 status code -> user logged in", async () => {
@@ -208,7 +216,7 @@ describe("GET /posts route -> get all accounts", () => {
       const position = Math.floor(Math.random() * 50);
 
       const response = await request(app)
-        .post(`/api/comment`)
+        .post(`/api/users/comment`)
         .send({ postId: posts[position].id, text: `Comment ${x}` })
         .set("Cookie", cookie);
       expect(response.status).toBe(201);
@@ -222,9 +230,8 @@ describe("GET /posts route -> get all accounts", () => {
     });
   }
 });
- */
 
-/* describe("POST /api/account/admin route -> create new user", () => {
+describe("POST /api/account/admin route -> create new user", () => {
   it("it should return 201 status code -> create new account successfully", async () => {
     const user = {
       email: "admin@fakeapis.io",
@@ -232,7 +239,7 @@ describe("GET /posts route -> get all accounts", () => {
       password2: "F4k3ap1s.io",
     };
 
-    const response = await request(app).post("/api/account/admin").send(user);
+    const response = await request(app).post("/api/admin/account").send(user);
 
     expect(response.status).toBe(201);
     expect(response.body.msg).toBe("Account created successfully!");
@@ -257,7 +264,7 @@ describe("PUT /api/account/:id/banned/true -> ban account", () => {
     });
     it("it should return 200 status code -> ban account", async () => {
       const response = await request(app)
-        .put(`/api/account/${accounts[position].id}/banned/true`)
+        .put(`/api/admin/account/${accounts[position].id}/banned/true`)
         .set("Cookie", cookie);
       expect(response.status).toBe(200);
     });
@@ -270,9 +277,8 @@ describe("PUT /api/account/:id/banned/true -> ban account", () => {
     });
   }
 });
- */
 
-/* describe("PUT /api/blog/:id/banned/true -> ban blog", () => {
+describe("PUT /api/blog/:id/banned/true -> ban blog", () => {
   for (let x = 0; x < 5; x++) {
     const position = Math.floor(Math.random() * 50);
 
@@ -289,7 +295,7 @@ describe("PUT /api/account/:id/banned/true -> ban account", () => {
     });
     it("it should return 200 status code -> ban account", async () => {
       const response = await request(app)
-        .put(`/api/blog/${blogs[position].id}/banned/true`)
+        .put(`/api/admin/blog/${blogs[position].id}/banned/true`)
         .set("Cookie", cookie);
       expect(response.status).toBe(200);
     });
@@ -301,9 +307,9 @@ describe("PUT /api/account/:id/banned/true -> ban account", () => {
       expect(response.body.msg).toBe("You successfully logged out!");
     });
   }
-}); */
+});
 
-/* describe("PUT /api/post/:id/banned/true -> ban post", () => {
+describe("PUT /api/post/:id/banned/true -> ban post", () => {
   for (let x = 0; x < 3; x++) {
     const position = Math.floor(Math.random() * 50);
 
@@ -320,7 +326,7 @@ describe("PUT /api/account/:id/banned/true -> ban account", () => {
     });
     it("it should return 200 status code -> ban account", async () => {
       const response = await request(app)
-        .put(`/api/post/${posts[position].id}/banned/true`)
+        .put(`/api/admin/post/${posts[position].id}/banned/true`)
         .set("Cookie", cookie);
       expect(response.status).toBe(200);
     });
@@ -333,4 +339,3 @@ describe("PUT /api/account/:id/banned/true -> ban account", () => {
     });
   }
 });
- */
