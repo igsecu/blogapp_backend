@@ -293,6 +293,30 @@ const deleteUserAccount = async (id) => {
   }
 };
 
+// Update user account password
+const updatePassword = async (id, hash) => {
+  try {
+    const updatedAccount = await BlogAccount.update(
+      {
+        password: hash,
+      },
+      {
+        where: {
+          id,
+        },
+      }
+    );
+
+    if (updatedAccount[0] === 1) {
+      const account = await getAccountById(id);
+
+      return account;
+    }
+  } catch (error) {
+    throw new Error("Error trying to update user account password");
+  }
+};
+
 module.exports = {
   checkEmailExists,
   createAccount,
@@ -305,4 +329,5 @@ module.exports = {
   deleteUserImage,
   deleteUserAccount,
   getAccountBlogs,
+  updatePassword,
 };
