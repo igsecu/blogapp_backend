@@ -32,5 +32,11 @@ router.put(
   ensureAuthenticatedUser,
   usersPostsController.updatePost
 );
+// Delete post image
+router.delete(
+  "/post/:id/image",
+  ensureAuthenticatedUser,
+  usersPostsController.deletePostImage
+);
 
 module.exports = router;
