@@ -27,7 +27,20 @@ const sendEmailRequestPassword = async (url, email) => {
   await sgMail.send(msg);
 };
 
+// Send email password confirmation
+const sendEmailPasswordConfirmation = async (email) => {
+  const msg = {
+    to: email,
+    from: process.env.SENDGRID_SENDER,
+    subject: "Reset Password Confirmation",
+    html: `<html><p>Your password was reseted successfully!</p></html>`,
+  };
+
+  await sgMail.send(msg);
+};
+
 module.exports = {
   sendEmailVerification,
   sendEmailRequestPassword,
+  sendEmailPasswordConfirmation,
 };
