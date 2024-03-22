@@ -200,6 +200,31 @@ const deletePostImage = async (id) => {
   }
 };
 
+// Delete post
+const deletePost = async (id) => {
+  try {
+    const post = await getPostById(id);
+
+    const postToDelete = await Post.findByPk(id);
+
+    const deletedPost = await Post.destroy({
+      where: {
+        id,
+      },
+    });
+
+    if (deletedPost) {
+      if (postToDelete.image_id !== null) {
+        await deleteImage(postToDelete.image_id);
+      }
+
+      return post;
+    }
+  } catch (error) {
+    throw new Error("Error trying to delete a post");
+  }
+};
+
 module.exports = {
   getPostById,
   createPost,
@@ -207,4 +232,5 @@ module.exports = {
   updatePostText,
   updatePostTitle,
   deletePostImage,
+  deletePost,
 };
