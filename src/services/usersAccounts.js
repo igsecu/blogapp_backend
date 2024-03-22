@@ -211,6 +211,55 @@ const deleteUserImage = async (id) => {
   }
 };
 
+// Delete user account
+const deleteUserAccount = async (id) => {
+  try {
+    const account = await BlogAccount.findByPk(id);
+
+    /* const blogs = await getAccountBlogs(req.user.id);
+    
+        for (b of blogs) {
+          const results = await getBlogPosts(b.id);
+    
+          for (let r of results) {
+            const post = await Post.findByPk(r.id);
+    
+            if (post.image_id !== null) {
+              await deleteImage(post.image_id);
+            }
+    
+            await Post.destroy({
+              where: {
+                id: r.id,
+              },
+            });
+          }
+          await Blog.destroy({
+            where: {
+              id: b.id,
+            },
+          });
+        } */
+
+    const deletedAccount = await BlogAccount.destroy({
+      where: {
+        id,
+      },
+    });
+
+    if (deletedAccount) {
+      if (account.image_id !== null) {
+        await deleteImage(account.image_id);
+      }
+
+      return deletedAccount;
+    }
+  } catch (error) {
+    console.log(error.message);
+    throw new Error("Error trying to delete user account");
+  }
+};
+
 module.exports = {
   checkEmailExists,
   createAccount,
@@ -221,4 +270,5 @@ module.exports = {
   updateUsername,
   updateUserImage,
   deleteUserImage,
+  deleteUserAccount,
 };
