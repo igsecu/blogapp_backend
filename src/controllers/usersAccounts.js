@@ -360,6 +360,26 @@ const deleteUserImage = async (req, res, next) => {
   }
 };
 
+// Delete account
+const deleteAccount = async (req, res, next) => {
+  try {
+    const account = await usersAccountsServices.deleteUserAccount(req.user.id);
+
+    if (account) {
+      req.logout((err) => {
+        if (err) return next(err);
+        return res.status(200).json({
+          statusCode: 200,
+          msg: "Account deleted successfully!",
+        });
+      });
+    }
+  } catch (error) {
+    console.log(error.message);
+    return next("Error trying to delete user account");
+  }
+};
+
 module.exports = {
   createAccount,
   googleCallback,
@@ -368,4 +388,5 @@ module.exports = {
   updateUsername,
   updateUserImage,
   deleteUserImage,
+  deleteAccount,
 };
