@@ -293,8 +293,55 @@ const updatePost = async (req, res, next) => {
   }
 };
 
+// Delete Post Image
+const deletePostImage = async (req, res, next) => {
+  const { id } = req.params;
+
+  try {
+    if (!validateId(id)) {
+      return res.status(400).json({
+        statusCode: 400,
+        msg: `ID: ${id} - Invalid format!`,
+      });
+    }
+
+    const post = await usersPostsServices.getPostById(id);
+
+    if (!post) {
+      return res.status(404).json({
+        statusCode: 404,
+        msg: `Post with ID: ${id} not found!`,
+      });
+    }
+
+    if (post.blog.account.id !== req.user.id) {
+      return res.status(400).json({
+        statusCode: 400,
+        msg: "You can not delete a post image that is not yours!",
+      });
+    }
+
+    const postToDelete = await usersPostsServices.deletePostImage(id);
+
+    if (postToDelete === null) {
+      return res.status(400).json({
+        statusCode: 400,
+        msg: "The post does not have an image to delete!",
+      });
+    }
+    return res.status(200).json({
+      statusCode: 200,
+      msg: "Post image deleted successfully!",
+      data: postToDelete,
+    });
+  } catch (error) {
+    return next("Error trying to delete post image");
+  }
+};
+
 module.exports = {
   createPost,
   updatePostImage,
   updatePost,
+  deletePostImage,
 };
