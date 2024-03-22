@@ -13,7 +13,7 @@ const Like = require("../models/Like");
 const BlogAccount = require("../models/BlogAccount");
 const Token = require("../models/Token");
 
-const { uploadProfileImage, deleteImage } = require("../utils/cloudinary");
+const { uploadProfileImage } = require("../utils/cloudinary");
 
 const fsExtra = require("fs-extra");
 
