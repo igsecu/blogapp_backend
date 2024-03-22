@@ -1,7 +1,11 @@
 const { Op } = require("sequelize");
 const BlogAccount = require("../models/BlogAccount");
+const Blog = require("../models/Blog");
+const Post = require("../models/Post");
 
 const { deleteImage } = require("../utils/cloudinary");
+
+const usersBlogsServices = require("../services/usersBlogs");
 
 // Check if email exists
 const checkEmailExists = async (email) => {
@@ -76,6 +80,35 @@ const getAccountById = async (id) => {
     return account;
   } catch (error) {
     throw new Error("Error trying to get an account by its id");
+  }
+};
+
+// Get account blogs
+const getAccountBlogs = async (id) => {
+  const array = [];
+  try {
+    const results = await Blog.findAll({
+      include: {
+        model: BlogAccount,
+        where: {
+          id,
+        },
+      },
+    });
+
+    if (results) {
+      results.forEach((r) => {
+        array.push({
+          id: r.id,
+          name: r.name,
+          isBanned: r.isBanned,
+        });
+      });
+    }
+
+    return array;
+  } catch (error) {
+    throw new Error("Error trying to get all account blogs");
   }
 };
 
@@ -216,30 +249,30 @@ const deleteUserAccount = async (id) => {
   try {
     const account = await BlogAccount.findByPk(id);
 
-    /* const blogs = await getAccountBlogs(req.user.id);
-    
-        for (b of blogs) {
-          const results = await getBlogPosts(b.id);
-    
-          for (let r of results) {
-            const post = await Post.findByPk(r.id);
-    
-            if (post.image_id !== null) {
-              await deleteImage(post.image_id);
-            }
-    
-            await Post.destroy({
-              where: {
-                id: r.id,
-              },
-            });
-          }
-          await Blog.destroy({
-            where: {
-              id: b.id,
-            },
-          });
-        } */
+    const blogs = await getAccountBlogs(id);
+
+    for (b of blogs) {
+      const results = await usersBlogsServices.getBlogPosts(b.id);
+
+      for (let r of results) {
+        const post = await Post.findByPk(r.id);
+
+        if (post.image_id !== null) {
+          await deleteImage(post.image_id);
+        }
+
+        await Post.destroy({
+          where: {
+            id: r.id,
+          },
+        });
+      }
+      await Blog.destroy({
+        where: {
+          id: b.id,
+        },
+      });
+    }
 
     const deletedAccount = await BlogAccount.destroy({
       where: {
@@ -271,4 +304,5 @@ module.exports = {
   updateUserImage,
   deleteUserImage,
   deleteUserAccount,
+  getAccountBlogs,
 };
