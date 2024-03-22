@@ -29,7 +29,27 @@ const banAccount = async (id) => {
       }
     );
 
-    console.log(updatedAccount);
+    if (updatedAccount) {
+      return updatedAccount;
+    }
+  } catch (error) {
+    throw new Error("Error trying to ban an account");
+  }
+};
+
+// Not Ban account
+const notBanAccount = async (id) => {
+  try {
+    const updatedAccount = await BlogAccount.update(
+      {
+        isBanned: false,
+      },
+      {
+        where: {
+          id,
+        },
+      }
+    );
 
     if (updatedAccount) {
       return updatedAccount;
@@ -42,4 +62,5 @@ const banAccount = async (id) => {
 module.exports = {
   createAccount,
   banAccount,
+  notBanAccount,
 };
