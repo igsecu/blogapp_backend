@@ -42,7 +42,34 @@ const createLike = async (id, postId) => {
   }
 };
 
+// Delete like
+const deleteLike = async (id, postId) => {
+  try {
+    const likeDeleted = await Like.destroy({
+      where: {
+        id,
+      },
+    });
+
+    if (likeDeleted) {
+      await Post.decrement(
+        { likes_number: 1 },
+        {
+          where: {
+            id: postId,
+          },
+        }
+      );
+
+      return likeDeleted;
+    }
+  } catch (error) {
+    throw new Error("Error trying to delete a like");
+  }
+};
+
 module.exports = {
   checkLikeExists,
   createLike,
+  deleteLike,
 };
