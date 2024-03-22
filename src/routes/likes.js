@@ -11,5 +11,11 @@ router.post(
   ensureAuthenticatedUser,
   usersLikesController.createLike
 );
+// Delete like
+router.delete(
+  "/like/post/:id",
+  ensureAuthenticatedUser,
+  usersLikesController.deleteLike
+);
 
 module.exports = router;
