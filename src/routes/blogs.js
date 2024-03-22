@@ -15,5 +15,11 @@ router.put(
   ensureAuthenticatedUser,
   usersBlogsController.updateBlogName
 );
+// Delete blog
+router.delete(
+  "/blog/:id",
+  ensureAuthenticatedUser,
+  usersBlogsController.deleteBlog
+);
 
 module.exports = router;
