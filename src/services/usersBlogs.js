@@ -166,6 +166,221 @@ const deleteBlog = async (id) => {
   }
 };
 
+// Get all blogs
+const getBlogs = async (id, page, limit) => {
+  const results = [];
+  try {
+    const dbResults = await Blog.findAndCountAll({
+      attributes: ["id", "name"],
+      include: {
+        model: BlogAccount,
+        attributes: ["id", "email", "username", "image"],
+        where: {
+          id: {
+            [Op.not]: id,
+          },
+          isBanned: false,
+        },
+      },
+      where: {
+        isBanned: false,
+      },
+      order: [["createdAt", "DESC"]],
+      limit,
+      offset: page * limit - limit,
+    });
+
+    if (dbResults.count === 0) {
+      return false;
+    }
+
+    if (dbResults.rows.length > 0) {
+      dbResults.rows.forEach((r) => {
+        results.push({
+          id: r.id,
+          name: r.name,
+          account: {
+            id: r.blogAccount.id,
+            email: r.blogAccount.email,
+            username: r.blogAccount.username,
+            image: r.blogAccount.image,
+          },
+        });
+      });
+
+      return {
+        totalResults: dbResults.count,
+        totalPages: Math.ceil(dbResults.count / limit),
+        page: parseInt(page),
+        data: results,
+      };
+    } else {
+      return { data: [] };
+    }
+  } catch (error) {
+    throw new Error("Error trying to get all blogs");
+  }
+};
+
+// Get filtered blogs
+const getFilteredBlogs = async (id, name, page, limit) => {
+  const results = [];
+  try {
+    const dbResults = await Blog.findAndCountAll({
+      attributes: ["id", "name"],
+      include: {
+        model: BlogAccount,
+        attributes: ["id", "email", "username", "image"],
+        where: {
+          id: {
+            [Op.not]: id,
+          },
+          isBanned: false,
+        },
+      },
+      where: {
+        name: {
+          [Op.iLike]: `%${name}%`,
+        },
+        isBanned: false,
+      },
+      order: [["createdAt", "DESC"]],
+      limit,
+      offset: page * limit - limit,
+    });
+
+    if (dbResults.count === 0) {
+      return false;
+    }
+
+    if (dbResults.rows.length > 0) {
+      dbResults.rows.forEach((r) => {
+        results.push({
+          id: r.id,
+          name: r.name,
+          account: {
+            id: r.blogAccount.id,
+            email: r.blogAccount.email,
+            username: r.blogAccount.username,
+            image: r.blogAccount.image,
+          },
+        });
+      });
+
+      return {
+        totalResults: dbResults.count,
+        totalPages: Math.ceil(dbResults.count / limit),
+        page: parseInt(page),
+        data: results,
+      };
+    } else {
+      return { data: [] };
+    }
+  } catch (error) {
+    throw new Error("Error trying to get filtered blogs");
+  }
+};
+
+// Get account blogs
+const getAccountBlogs = async (id, page, limit) => {
+  const results = [];
+  try {
+    const dbResults = await Blog.findAndCountAll({
+      attributes: ["id", "name"],
+      include: {
+        model: BlogAccount,
+        attributes: ["id", "email", "username", "image"],
+        where: { id, isBanned: false },
+      },
+      where: {
+        isBanned: false,
+      },
+      order: [["createdAt", "DESC"]],
+      limit,
+      offset: page * limit - limit,
+    });
+
+    if (dbResults.count === 0) {
+      return false;
+    }
+
+    if (dbResults.rows.length > 0) {
+      dbResults.rows.forEach((r) => {
+        results.push({
+          id: r.id,
+          name: r.name,
+          account: {
+            id: r.blogAccount.id,
+            email: r.blogAccount.email,
+            username: r.blogAccount.username,
+            image: r.blogAccount.image,
+          },
+        });
+      });
+
+      return {
+        totalResults: dbResults.count,
+        totalPages: Math.ceil(dbResults.count / limit),
+        page: parseInt(page),
+        data: results,
+      };
+    } else {
+      return { data: [] };
+    }
+  } catch (error) {
+    throw new Error("Error trying to get account blogs");
+  }
+};
+
+// Get own blogs
+const getOwnBlogs = async (id, page, limit) => {
+  const results = [];
+  try {
+    const dbResults = await Blog.findAndCountAll({
+      attributes: ["id", "name", "isBanned"],
+      include: {
+        model: BlogAccount,
+        attributes: ["id", "email", "username", "image"],
+        where: { id, isBanned: false },
+      },
+      order: [["createdAt", "DESC"]],
+      limit,
+      offset: page * limit - limit,
+    });
+
+    if (dbResults.count === 0) {
+      return false;
+    }
+
+    if (dbResults.rows.length > 0) {
+      dbResults.rows.forEach((r) => {
+        results.push({
+          id: r.id,
+          name: r.name,
+          isBanned: r.isBanned,
+          account: {
+            id: r.blogAccount.id,
+            email: r.blogAccount.email,
+            username: r.blogAccount.username,
+            image: r.blogAccount.image,
+          },
+        });
+      });
+
+      return {
+        totalResults: dbResults.count,
+        totalPages: Math.ceil(dbResults.count / limit),
+        page: parseInt(page),
+        data: results,
+      };
+    } else {
+      return { data: [] };
+    }
+  } catch (error) {
+    throw new Error("Error trying to get own blogs");
+  }
+};
+
 module.exports = {
   checkBlogExists,
   createBlog,
@@ -173,4 +388,8 @@ module.exports = {
   updateBlogName,
   deleteBlog,
   getBlogPosts,
+  getBlogs,
+  getFilteredBlogs,
+  getAccountBlogs,
+  getOwnBlogs,
 };
