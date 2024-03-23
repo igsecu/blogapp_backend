@@ -9,6 +9,12 @@ const { ensureAuthenticatedUser } = require("../utils/index");
 
 const fileUpload = require("express-fileupload");
 
+// Get filtered account by username or email
+router.get(
+  "/accounts/filter",
+  ensureAuthenticatedUser,
+  usersAccountsController.getFilteredAccounts
+);
 // Get all accounts
 router.get(
   "/accounts",
