@@ -1,6 +1,8 @@
 const Blog = require("../models/Blog");
 const BlogAccount = require("../models/BlogAccount");
 
+const { Op } = require("sequelize");
+
 // Ban blog
 const banBlog = async (id) => {
   try {
@@ -96,8 +98,65 @@ const getBlogs = async (page, limit) => {
   }
 };
 
+// Get filtered blogs
+const getFilteredBlogs = async (name, page, limit) => {
+  const results = [];
+  try {
+    const dbResults = await Blog.findAndCountAll({
+      attributes: ["id", "name", "isBanned"],
+      include: {
+        model: BlogAccount,
+        attributes: ["id", "email", "username", "isBanned"],
+        where: {
+          isAdmin: false,
+        },
+      },
+      where: {
+        name: {
+          [Op.iLike]: `%${name}%`,
+        },
+      },
+      order: [["createdAt", "DESC"]],
+      limit,
+      offset: page * limit - limit,
+    });
+
+    if (dbResults.count === 0) {
+      return false;
+    }
+
+    if (dbResults.rows.length > 0) {
+      dbResults.rows.forEach((r) => {
+        results.push({
+          id: r.id,
+          name: r.name,
+          isBanned: r.isBanned,
+          account: {
+            id: r.blogAccount.id,
+            email: r.blogAccount.email,
+            username: r.blogAccount.username,
+            isBanned: r.blogAccount.isBanned,
+          },
+        });
+      });
+      return {
+        totalResults: dbResults.count,
+        totalPages: Math.ceil(dbResults.count / limit),
+        page: parseInt(page),
+        data: results,
+      };
+    } else {
+      return { data: [] };
+    }
+  } catch (error) {
+    console.log(error.message);
+    throw new Error("Error trying to get filtered blogs");
+  }
+};
+
 module.exports = {
   banBlog,
   notBanBlog,
   getBlogs,
+  getFilteredBlogs,
 };
