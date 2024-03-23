@@ -4,6 +4,12 @@ const router = express.Router();
 const adminPostsController = require("../controllers/adminPosts");
 const { ensureAuthenticatedAdmin } = require("../utils");
 
+// Get filtered posts
+router.get(
+  "/posts/filter",
+  ensureAuthenticatedAdmin,
+  adminPostsController.getFilteredPosts
+);
 // Get all posts
 router.get("/posts", ensureAuthenticatedAdmin, adminPostsController.getPosts);
 // Ban post
