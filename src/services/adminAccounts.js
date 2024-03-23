@@ -1,5 +1,7 @@
 const BlogAccount = require("../models/BlogAccount");
 
+const { Op } = require("sequelize");
+
 // Create account
 const createAccount = async (hash, email) => {
   try {
@@ -59,8 +61,63 @@ const notBanAccount = async (id) => {
   }
 };
 
+// Get accounts
+const getAccounts = async (page, limit) => {
+  const results = [];
+  try {
+    const accounts = await BlogAccount.findAndCountAll({
+      attributes: [
+        "id",
+        "email",
+        "username",
+        "isBanned",
+        "isVerified",
+        "isAdmin",
+        "image",
+      ],
+      where: {
+        isAdmin: false,
+      },
+      order: [["createdAt", "DESC"]],
+      limit,
+      offset: page * limit - limit,
+    });
+
+    if (accounts.count === 0) {
+      return false;
+    }
+
+    if (accounts.rows.length > 0) {
+      accounts.rows.forEach((r) => {
+        results.push({
+          id: r.id,
+          email: r.email,
+          username: r.username,
+          isBanned: r.isBanned,
+          isVerified: r.isVerified,
+          isAdmin: r.isAdmin,
+          image: r.image,
+        });
+      });
+
+      return {
+        totalResults: accounts.count,
+        totalPages: Math.ceil(accounts.count / limit),
+        page: parseInt(page),
+        data: results,
+      };
+    } else {
+      return { data: [] };
+    }
+  } catch (error) {
+    console.log(error.message);
+    throw new Error("Error trying to get all accounts");
+  }
+};
+
 module.exports = {
   createAccount,
   banAccount,
   notBanAccount,
+  getAccounts,
 };
