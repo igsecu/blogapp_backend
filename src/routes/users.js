@@ -9,6 +9,12 @@ const { ensureAuthenticatedUser } = require("../utils/index");
 
 const fileUpload = require("express-fileupload");
 
+// Get all accounts
+router.get(
+  "/accounts",
+  ensureAuthenticatedUser,
+  usersAccountsController.getAccounts
+);
 // Github Callback
 router.get(
   "/auth/github/callback",
