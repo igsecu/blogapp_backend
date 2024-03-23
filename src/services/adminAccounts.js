@@ -225,6 +225,63 @@ const getNotBannedAccounts = async (page, limit) => {
   }
 };
 
+// Get filtered accounts
+const getFilteredAccounts = async (email, page, limit) => {
+  const results = [];
+  try {
+    const accounts = await BlogAccount.findAndCountAll({
+      attributes: [
+        "id",
+        "email",
+        "username",
+        "isBanned",
+        "isVerified",
+        "isAdmin",
+        "image",
+      ],
+      where: {
+        isAdmin: false,
+        email: {
+          [Op.iLike]: `%${email}%`,
+        },
+      },
+      order: [["createdAt", "DESC"]],
+      limit,
+      offset: page * limit - limit,
+    });
+
+    if (accounts.count === 0) {
+      return false;
+    }
+
+    if (accounts.rows.length > 0) {
+      accounts.rows.forEach((r) => {
+        results.push({
+          id: r.id,
+          email: r.email,
+          username: r.username,
+          isBanned: r.isBanned,
+          isVerified: r.isVerified,
+          isAdmin: r.isAdmin,
+          image: r.image,
+        });
+      });
+
+      return {
+        totalResults: accounts.count,
+        totalPages: Math.ceil(accounts.count / limit),
+        page: parseInt(page),
+        data: results,
+      };
+    } else {
+      return { data: [] };
+    }
+  } catch (error) {
+    console.log(error.message);
+    throw new Error("Error trying to get filtered accounts");
+  }
+};
+
 module.exports = {
   createAccount,
   banAccount,
@@ -232,4 +289,5 @@ module.exports = {
   getAccounts,
   getBannedAccounts,
   getNotBannedAccounts,
+  getFilteredAccounts,
 };
