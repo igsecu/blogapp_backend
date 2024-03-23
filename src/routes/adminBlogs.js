@@ -4,6 +4,12 @@ const router = express.Router();
 const adminBlogsController = require("../controllers/adminBlogs");
 const { ensureAuthenticatedAdmin } = require("../utils");
 
+// Get blogs filtered by name
+router.get(
+  "/blogs/filter",
+  ensureAuthenticatedAdmin,
+  adminBlogsController.getFilteredBlogs
+);
 // Get all blogs
 router.get("/blogs", ensureAuthenticatedAdmin, adminBlogsController.getBlogs);
 // Ban blog
