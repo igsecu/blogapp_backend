@@ -330,6 +330,72 @@ const getNotBannedAccounts = async (req, res, next) => {
   }
 };
 
+// Get filtered accounts
+const getFilteredAccounts = async (req, res, next) => {
+  const { page, limit, email } = req.query;
+  try {
+    if (!email) {
+      return res.status(400).json({
+        statusCode: 400,
+        msg: "Email query is missing",
+      });
+    }
+
+    if (page) {
+      if (validatePage(page)) {
+        return res.status(400).json({
+          statusCode: 400,
+          msg: "Page must be a number",
+        });
+      }
+
+      if (parseInt(page) === 0) {
+        return res.status(404).json({
+          statusCode: 404,
+          msg: `Page ${page} not found!`,
+        });
+      }
+    }
+
+    if (limit) {
+      if (validateLimit(limit)) {
+        return res.status(400).json({
+          statusCode: 400,
+          msg: "Limit must be a number",
+        });
+      }
+    }
+
+    const accounts = await adminAccountsServices.getFilteredAccounts(
+      email,
+      page ? page : 1,
+      limit ? limit : 10
+    );
+
+    if (!accounts) {
+      return res.status(404).json({
+        statusCode: 404,
+        msg: "No accounts found!",
+      });
+    }
+
+    if (!accounts.data.length) {
+      return res.status(404).json({
+        statusCode: 404,
+        msg: `Page ${page} not found!`,
+      });
+    }
+
+    res.status(200).json({
+      statusCode: 200,
+      ...accounts,
+    });
+  } catch (error) {
+    console.log(error.message);
+    throw next(error);
+  }
+};
+
 module.exports = {
   createAccount,
   banAccount,
@@ -337,4 +403,5 @@ module.exports = {
   getAccounts,
   getBannedAccounts,
   getNotBannedAccounts,
+  getFilteredAccounts,
 };
