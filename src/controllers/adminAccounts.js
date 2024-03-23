@@ -210,7 +210,123 @@ const getAccounts = async (req, res, next) => {
     });
   } catch (error) {
     console.log(error.message);
-    throw next("Error trying to get all accounts");
+    throw next(error);
+  }
+};
+
+// Get banned accounts
+const getBannedAccounts = async (req, res, next) => {
+  const { page, limit } = req.query;
+  try {
+    if (page) {
+      if (validatePage(page)) {
+        return res.status(400).json({
+          statusCode: 400,
+          msg: "Page must be a number",
+        });
+      }
+
+      if (parseInt(page) === 0) {
+        return res.status(404).json({
+          statusCode: 404,
+          msg: `Page ${page} not found!`,
+        });
+      }
+    }
+
+    if (limit) {
+      if (validateLimit(limit)) {
+        return res.status(400).json({
+          statusCode: 400,
+          msg: "Limit must be a number",
+        });
+      }
+    }
+
+    const accounts = await adminAccountsServices.getBannedAccounts(
+      page ? page : 1,
+      limit ? limit : 10
+    );
+
+    if (!accounts) {
+      return res.status(404).json({
+        statusCode: 404,
+        msg: "No banned accounts saved in DB!",
+      });
+    }
+
+    if (!accounts.data.length) {
+      return res.status(404).json({
+        statusCode: 404,
+        msg: `Page ${page} not found!`,
+      });
+    }
+
+    res.status(200).json({
+      statusCode: 200,
+      ...accounts,
+    });
+  } catch (error) {
+    console.log(error.message);
+    throw next(error);
+  }
+};
+
+// Get not banned accounts
+const getNotBannedAccounts = async (req, res, next) => {
+  const { page, limit } = req.query;
+  try {
+    if (page) {
+      if (validatePage(page)) {
+        return res.status(400).json({
+          statusCode: 400,
+          msg: "Page must be a number",
+        });
+      }
+
+      if (parseInt(page) === 0) {
+        return res.status(404).json({
+          statusCode: 404,
+          msg: `Page ${page} not found!`,
+        });
+      }
+    }
+
+    if (limit) {
+      if (validateLimit(limit)) {
+        return res.status(400).json({
+          statusCode: 400,
+          msg: "Limit must be a number",
+        });
+      }
+    }
+
+    const accounts = await adminAccountsServices.getNotBannedAccounts(
+      page ? page : 1,
+      limit ? limit : 10
+    );
+
+    if (!accounts) {
+      return res.status(404).json({
+        statusCode: 404,
+        msg: "No not banned accounts saved in DB!",
+      });
+    }
+
+    if (!accounts.data.length) {
+      return res.status(404).json({
+        statusCode: 404,
+        msg: `Page ${page} not found!`,
+      });
+    }
+
+    res.status(200).json({
+      statusCode: 200,
+      ...accounts,
+    });
+  } catch (error) {
+    console.log(error.message);
+    throw next(error);
   }
 };
 
@@ -219,4 +335,6 @@ module.exports = {
   banAccount,
   notBanAccount,
   getAccounts,
+  getBannedAccounts,
+  getNotBannedAccounts,
 };
