@@ -4,6 +4,12 @@ const router = express.Router();
 const adminAccountsController = require("../controllers/adminAccounts");
 const { ensureAuthenticatedAdmin } = require("../utils");
 
+// Get filter accounts
+router.get(
+  "/accounts/filter",
+  ensureAuthenticatedAdmin,
+  adminAccountsController.getFilteredAccounts
+);
 // Get not banned accounts
 router.get(
   "/accounts/banned/false",
