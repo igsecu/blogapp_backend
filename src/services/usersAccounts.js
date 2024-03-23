@@ -317,6 +317,53 @@ const updatePassword = async (id, hash) => {
   }
 };
 
+// Get accounts
+const getAccounts = async (id, page, limit) => {
+  const results = [];
+  try {
+    const dbResults = await BlogAccount.findAndCountAll({
+      attributes: ["id", "email", "username", "isVerified", "image"],
+      where: {
+        id: {
+          [Op.not]: id,
+        },
+        isAdmin: false,
+        isBanned: false,
+      },
+      order: [["createdAt", "DESC"]],
+      limit,
+      offset: page * limit - limit,
+    });
+
+    if (dbResults.count === 0) {
+      return false;
+    }
+
+    if (dbResults.rows.length > 0) {
+      dbResults.rows.forEach((r) => {
+        results.push({
+          id: r.id,
+          username: r.username,
+          email: r.email,
+          image: r.image,
+          isVerified: r.isVerified,
+        });
+      });
+
+      return {
+        totalResults: dbResults.count,
+        totalPages: Math.ceil(dbResults.count / limit),
+        page: parseInt(page),
+        data: results,
+      };
+    } else {
+      return { data: [] };
+    }
+  } catch (error) {
+    throw new Error("Error trying to get all accounts");
+  }
+};
+
 module.exports = {
   checkEmailExists,
   createAccount,
@@ -330,4 +377,5 @@ module.exports = {
   deleteUserAccount,
   getAccountBlogs,
   updatePassword,
+  getAccounts,
 };
