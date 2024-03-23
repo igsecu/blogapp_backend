@@ -4,6 +4,12 @@ const router = express.Router();
 const adminAccountsController = require("../controllers/adminAccounts");
 const { ensureAuthenticatedAdmin } = require("../utils");
 
+// Get all accounts
+router.get(
+  "/accounts",
+  ensureAuthenticatedAdmin,
+  adminAccountsController.getAccounts
+);
 // Create new admin account
 router.post("/account", adminAccountsController.createAccount);
 // Ban user account
