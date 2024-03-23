@@ -1,7 +1,7 @@
 const adminPostsServices = require("../services/adminPosts");
 const usersPostServices = require("../services/usersPosts");
 
-const { validateId } = require("../utils/index");
+const { validateId, validateLimit, validatePage } = require("../utils/index");
 
 // Ban post
 const banPost = async (req, res, next) => {
@@ -71,7 +71,65 @@ const notBanPost = async (req, res, next) => {
   }
 };
 
+// Get posts
+const getPosts = async (req, res, next) => {
+  const { page, limit } = req.query;
+  try {
+    if (page) {
+      if (validatePage(page)) {
+        return res.status(400).json({
+          statusCode: 400,
+          msg: "Page must be a number",
+        });
+      }
+
+      if (parseInt(page) === 0) {
+        return res.status(404).json({
+          statusCode: 404,
+          msg: `Page ${page} not found!`,
+        });
+      }
+    }
+
+    if (limit) {
+      if (validateLimit(limit)) {
+        return res.status(400).json({
+          statusCode: 400,
+          msg: "Limit must be a number",
+        });
+      }
+    }
+
+    const posts = await adminPostsServices.getPosts(
+      page ? page : 1,
+      limit ? limit : 10
+    );
+
+    if (!posts) {
+      return res.status(404).json({
+        statusCode: 404,
+        msg: "No posts saved in DB!",
+      });
+    }
+
+    if (!posts.data.length) {
+      return res.status(404).json({
+        statusCode: 404,
+        msg: `Page ${page} not found!`,
+      });
+    }
+
+    res.status(200).json({
+      statusCode: 200,
+      ...posts,
+    });
+  } catch (error) {
+    return next(error);
+  }
+};
+
 module.exports = {
   banPost,
   notBanPost,
+  getPosts,
 };
