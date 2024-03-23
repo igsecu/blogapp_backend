@@ -13,6 +13,8 @@ const {
   validateEmail,
   validatePasswordConfirmation,
   validateImageSize,
+  validatePage,
+  validateLimit,
 } = require("../utils/index");
 
 const usersAccountsServices = require("../services/usersAccounts");
@@ -543,6 +545,64 @@ const resetPassword = async (req, res, next) => {
   }
 };
 
+// Get all accounts
+const getAccounts = async (req, res, next) => {
+  const { page, limit } = req.query;
+  try {
+    if (page) {
+      if (validatePage(page)) {
+        return res.status(400).json({
+          statusCode: 400,
+          msg: "Page must be a number",
+        });
+      }
+
+      if (parseInt(page) === 0) {
+        return res.status(404).json({
+          statusCode: 404,
+          msg: `Page ${page} not found!`,
+        });
+      }
+    }
+
+    if (limit) {
+      if (validateLimit(limit)) {
+        return res.status(400).json({
+          statusCode: 400,
+          msg: "Limit must be a number",
+        });
+      }
+    }
+
+    const accounts = await usersAccountsServices.getAccounts(
+      req.user.id,
+      page ? page : 1,
+      limit ? limit : 10
+    );
+
+    if (!accounts) {
+      return res.status(404).json({
+        statusCode: 404,
+        msg: "No accounts saved in DB",
+      });
+    }
+
+    if (!accounts.data.length) {
+      return res.status(404).json({
+        statusCode: 404,
+        msg: `Page ${page} not found!`,
+      });
+    }
+
+    res.status(200).json({
+      statusCode: 200,
+      ...accounts,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
 module.exports = {
   createAccount,
   googleCallback,
@@ -554,4 +614,5 @@ module.exports = {
   deleteAccount,
   requestPassword,
   resetPassword,
+  getAccounts,
 };
