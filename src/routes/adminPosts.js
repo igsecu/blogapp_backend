@@ -4,6 +4,8 @@ const router = express.Router();
 const adminPostsController = require("../controllers/adminPosts");
 const { ensureAuthenticatedAdmin } = require("../utils");
 
+// Get all posts
+router.get("/posts", ensureAuthenticatedAdmin, adminPostsController.getPosts);
 // Ban post
 router.put(
   "/post/:id/banned/true",
