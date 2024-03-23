@@ -603,6 +603,72 @@ const getAccounts = async (req, res, next) => {
   }
 };
 
+// Get filtered accounts
+const getFilteredAccounts = async (req, res, next) => {
+  const { text, page, limit } = req.query;
+  try {
+    if (!text) {
+      return res.status(400).json({
+        statusCode: 400,
+        msg: "Text query parameter is missing",
+      });
+    }
+
+    if (page) {
+      if (validatePage(page)) {
+        return res.status(400).json({
+          statusCode: 400,
+          msg: "Page must be a number",
+        });
+      }
+
+      if (parseInt(page) === 0) {
+        return res.status(404).json({
+          statusCode: 404,
+          msg: `Page ${page} not found!`,
+        });
+      }
+    }
+
+    if (limit) {
+      if (validateLimit(limit)) {
+        return res.status(400).json({
+          statusCode: 400,
+          msg: "Limit must be a number",
+        });
+      }
+    }
+
+    const accounts = await usersAccountsServices.getFilteredAccounts(
+      req.user.id,
+      text,
+      page ? page : 1,
+      limit ? limit : 10
+    );
+
+    if (!accounts) {
+      return res.status(404).json({
+        statusCode: 404,
+        msg: `No accounts with text: ${text} found!`,
+      });
+    }
+
+    if (!accounts.data.length) {
+      return res.status(404).json({
+        statusCode: 404,
+        msg: `Page ${page} not found!`,
+      });
+    }
+
+    res.status(200).json({
+      statusCode: 200,
+      ...accounts,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
 module.exports = {
   createAccount,
   googleCallback,
@@ -615,4 +681,5 @@ module.exports = {
   requestPassword,
   resetPassword,
   getAccounts,
+  getFilteredAccounts,
 };
