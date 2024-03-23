@@ -364,6 +364,61 @@ const getAccounts = async (id, page, limit) => {
   }
 };
 
+// Get filtered accounts
+const getFilteredAccounts = async (id, text, page, limit) => {
+  const results = [];
+  try {
+    const dbResults = await BlogAccount.findAndCountAll({
+      attributes: ["id", "email", "username", "isVerified", "image"],
+      where: {
+        id: {
+          [Op.not]: id,
+        },
+        isAdmin: false,
+        isBanned: false,
+        [Op.or]: {
+          username: {
+            [Op.iLike]: `%${text}%`,
+          },
+          email: {
+            [Op.iLike]: `%${text}%`,
+          },
+        },
+      },
+      order: [["createdAt", "DESC"]],
+      limit,
+      offset: page * limit - limit,
+    });
+
+    if (dbResults.count === 0) {
+      return false;
+    }
+
+    if (dbResults.rows.length > 0) {
+      dbResults.rows.forEach((r) => {
+        results.push({
+          id: r.id,
+          username: r.username,
+          email: r.email,
+          image: r.image,
+          isVerified: r.isVerified,
+        });
+      });
+
+      return {
+        totalResults: dbResults.count,
+        totalPages: Math.ceil(dbResults.count / limit),
+        page: parseInt(page),
+        data: results,
+      };
+    } else {
+      return { data: [] };
+    }
+  } catch (error) {
+    throw new Error("Error trying to get filtered accounts");
+  }
+};
+
 module.exports = {
   checkEmailExists,
   createAccount,
@@ -378,4 +433,5 @@ module.exports = {
   getAccountBlogs,
   updatePassword,
   getAccounts,
+  getFilteredAccounts,
 };
