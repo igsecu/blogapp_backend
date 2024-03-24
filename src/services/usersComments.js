@@ -64,7 +64,67 @@ const createComment = async (text, postId, id) => {
   }
 };
 
+// Get post comments
+const getPostComments = async (id, page, limit) => {
+  const results = [];
+  try {
+    const dbResults = await Comment.findAndCountAll({
+      attributes: ["id", "text", "isBanned"],
+      include: [
+        {
+          model: BlogAccount,
+          attributes: ["id", "email", "username", "image"],
+        },
+        {
+          model: Post,
+          attributes: ["id"],
+          where: {
+            id,
+          },
+        },
+      ],
+      where: {
+        isBanned: false,
+      },
+      order: [["createdAt", "DESC"]],
+      limit,
+      offset: page * limit - limit,
+    });
+
+    if (dbResults.count === 0) {
+      return false;
+    }
+
+    if (dbResults.rows.length > 0) {
+      dbResults.rows.forEach((r) => {
+        results.push({
+          id: r.id,
+          text: r.text,
+          account: {
+            id: r.blogAccount.id,
+            email: r.blogAccount.email,
+            username: r.blogAccount.username,
+            image: r.blogAccount.image,
+          },
+        });
+      });
+      return {
+        totalResults: dbResults.count,
+        totalPages: Math.ceil(dbResults.count / limit),
+        page: parseInt(page),
+        data: results,
+      };
+    } else {
+      return { data: [] };
+    }
+  } catch (error) {
+    console.log(error.message);
+    throw new Error("Error trying to get post comments");
+  }
+};
+
 module.exports = {
   createComment,
   getCommentById,
+  getPostComments,
 };
