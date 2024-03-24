@@ -11,6 +11,8 @@ const {
   validateTitle,
   validateFileType,
   validateImageSize,
+  validatePage,
+  validateLimit,
 } = require("../utils/index");
 
 const { uploadPostImage } = require("../utils/cloudinary");
@@ -386,10 +388,291 @@ const deletePost = async (req, res, next) => {
   }
 };
 
+// Get posts
+const getPosts = async (req, res, next) => {
+  const { page, limit } = req.query;
+  try {
+    if (page) {
+      if (validatePage(page)) {
+        return res.status(400).json({
+          statusCode: 400,
+          msg: "Page must be a number",
+        });
+      }
+
+      if (parseInt(page) === 0) {
+        return res.status(404).json({
+          statusCode: 404,
+          msg: `Page ${page} not found!`,
+        });
+      }
+    }
+
+    if (limit) {
+      if (validateLimit(limit)) {
+        return res.status(400).json({
+          statusCode: 400,
+          msg: "Limit must be a number",
+        });
+      }
+    }
+
+    const posts = await usersPostsServices.getPosts(
+      req.user.id,
+      page ? page : 1,
+      limit ? limit : 10
+    );
+
+    if (!posts) {
+      return res.status(404).json({
+        statusCode: 404,
+        msg: "No posts saved in DB",
+      });
+    }
+
+    if (!posts.data.length) {
+      return res.status(404).json({
+        statusCode: 404,
+        msg: `Page ${page} not found!`,
+      });
+    }
+
+    res.status(200).json({
+      statusCode: 200,
+      ...posts,
+    });
+  } catch (error) {
+    return next(error);
+  }
+};
+
+// Get filtered posts
+const getFilteredPosts = async (req, res, next) => {
+  const { text, page, limit } = req.query;
+  try {
+    if (!text) {
+      return res.status(400).json({
+        statusCode: 400,
+        msg: "Text query parameter is missing",
+      });
+    }
+
+    if (page) {
+      if (validatePage(page)) {
+        return res.status(400).json({
+          statusCode: 400,
+          msg: "Page must be a number",
+        });
+      }
+
+      if (parseInt(page) === 0) {
+        return res.status(404).json({
+          statusCode: 404,
+          msg: `Page ${page} not found!`,
+        });
+      }
+    }
+
+    if (limit) {
+      if (validateLimit(limit)) {
+        return res.status(400).json({
+          statusCode: 400,
+          msg: "Limit must be a number",
+        });
+      }
+    }
+
+    const posts = await usersPostsServices.getFilteredPosts(
+      req.user.id,
+      text,
+      page ? page : 1,
+      limit ? limit : 10
+    );
+
+    if (!posts) {
+      return res.status(404).json({
+        statusCode: 404,
+        msg: `No posts with text: ${text} found!`,
+      });
+    }
+
+    if (!posts.data.length) {
+      return res.status(404).json({
+        statusCode: 404,
+        msg: `Page ${page} not found!`,
+      });
+    }
+
+    res.status(200).json({
+      statusCode: 200,
+      ...posts,
+    });
+  } catch (error) {
+    return next(error);
+  }
+};
+
+// Get blog posts
+const getBlogPosts = async (req, res, next) => {
+  const { page, limit } = req.query;
+  const { id } = req.params;
+  try {
+    if (!validateId(id)) {
+      return res.status(400).json({
+        statusCode: 400,
+        msg: `Id: ${id} - Invalid format!`,
+      });
+    }
+
+    const blog = await usersBlogsServices.getBlogById(id);
+
+    if (!blog) {
+      return res.status(404).json({
+        statusCode: 404,
+        msg: `Blog with ID: ${id} not found!`,
+      });
+    }
+
+    if (blog.isBanned === true) {
+      return res.status(400).json({
+        statusCode: 400,
+        msg: "This blog is banned! You can not access to it...",
+      });
+    }
+
+    if (blog.account.isBanned === true) {
+      return res.status(400).json({
+        statusCode: 400,
+        msg: "The account of the blog is banned! You can not access to it...",
+      });
+    }
+
+    if (page) {
+      if (validatePage(page)) {
+        return res.status(400).json({
+          statusCode: 400,
+          msg: "Page must be a number",
+        });
+      }
+
+      if (parseInt(page) === 0) {
+        return res.status(404).json({
+          statusCode: 404,
+          msg: `Page ${page} not found!`,
+        });
+      }
+    }
+
+    if (limit) {
+      if (validateLimit(limit)) {
+        return res.status(400).json({
+          statusCode: 400,
+          msg: "Limit must be a number",
+        });
+      }
+    }
+
+    let posts;
+
+    if (blog.account.id === req.user.id) {
+      posts = await usersPostsServices.getOwnBlogPosts(
+        id,
+        page ? page : 1,
+        limit ? limit : 10
+      );
+    } else {
+      posts = await usersPostsServices.getBlogPosts(
+        id,
+        page ? page : 1,
+        limit ? limit : 10
+      );
+    }
+
+    if (!posts) {
+      return res.status(404).json({
+        statusCode: 404,
+        msg: `This blog does not have posts!`,
+      });
+    }
+
+    if (!posts.data.length) {
+      return res.status(404).json({
+        statusCode: 404,
+        msg: `Page ${page} not found!`,
+      });
+    }
+
+    res.status(200).json({
+      statusCode: 200,
+      ...posts,
+    });
+  } catch (error) {
+    return next(error);
+  }
+};
+
+// Get post by id
+const getPostById = async (req, res, next) => {
+  const { id } = req.params;
+  try {
+    if (!validateId(id)) {
+      return res.status(400).json({
+        statusCode: 400,
+        msg: `ID: ${id} - Invalid format!`,
+      });
+    }
+
+    const post = await usersPostsServices.getPostById(id);
+
+    if (!post) {
+      return res.status(404).json({
+        statusCode: 404,
+        msg: `Post with ID: ${id} not found!`,
+      });
+    }
+
+    if (post.isBanned === true && post.blog.account.id !== req.user.id) {
+      return res.status(400).json({
+        statusCode: 400,
+        msg: "This post is banned! You can not access to it...",
+      });
+    }
+
+    if (post.blog.isBanned === true && post.blog.account.id !== req.user.id) {
+      return res.status(400).json({
+        statusCode: 400,
+        msg: "The blog of the post is banned! You can not access to it...",
+      });
+    }
+
+    if (post.blog.account.isBanned === true) {
+      return res.status(400).json({
+        statusCode: 400,
+        msg: "The account of the post is banned! You can not access to it...",
+      });
+    }
+
+    if (post.blog.account.id !== req.user.id) {
+      await usersPostsServices.incrementReader(id);
+    }
+
+    res.status(200).json({
+      statusCode: 200,
+      data: post,
+    });
+  } catch (error) {
+    return next(error);
+  }
+};
+
 module.exports = {
   createPost,
   updatePostImage,
   updatePost,
   deletePostImage,
   deletePost,
+  getPosts,
+  getFilteredPosts,
+  getBlogPosts,
+  getPostById,
 };
