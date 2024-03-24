@@ -7,6 +7,7 @@ const loginRouter = require("./login");
 const postsRouter = require("./posts");
 const commentsRouter = require("./comments");
 const likesRouter = require("./likes");
+const notificationsRouter = require("./notifications");
 
 const adminRouter = require("./admin");
 const adminBlogsRouter = require("./adminBlogs");
@@ -20,6 +21,7 @@ router.use("/users", blogsRouter);
 router.use("/users", postsRouter);
 router.use("/users", commentsRouter);
 router.use("/users", likesRouter);
+router.use("/users", notificationsRouter);
 
 router.use("/admin", adminRouter);
 router.use("/admin", adminBlogsRouter);
