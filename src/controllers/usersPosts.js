@@ -665,6 +665,48 @@ const getPostById = async (req, res, next) => {
   }
 };
 
+// Get posts with more readers
+const getPostsMoreReaders = async (req, res, next) => {
+  try {
+    const posts = await usersPostsServices.getPostsMoreReaders();
+
+    if (!posts.length) {
+      return res.status(404).json({
+        statusCode: 404,
+        msg: "No posts saved in DB",
+      });
+    }
+
+    res.status(200).json({
+      statusCode: 200,
+      data: posts,
+    });
+  } catch (error) {
+    return next(error);
+  }
+};
+
+// Get last 10 posts
+const getLastPosts = async (req, res, next) => {
+  try {
+    const posts = await usersPostsServices.getLastPosts(req.user.id);
+
+    if (!posts) {
+      return res.status(404).json({
+        statusCode: 404,
+        msg: "No posts saved in DB",
+      });
+    }
+
+    res.status(200).json({
+      statusCode: 200,
+      data: posts,
+    });
+  } catch (error) {
+    return next(error);
+  }
+};
+
 module.exports = {
   createPost,
   updatePostImage,
@@ -675,4 +717,6 @@ module.exports = {
   getFilteredPosts,
   getBlogPosts,
   getPostById,
+  getPostsMoreReaders,
+  getLastPosts,
 };
