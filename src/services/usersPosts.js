@@ -566,6 +566,140 @@ const incrementReader = async (id) => {
   }
 };
 
+// Get posts with more readers
+const getPostsMoreReaders = async () => {
+  const results = [];
+  try {
+    const dbResults = await Post.findAll({
+      attributes: [
+        "id",
+        "title",
+        "text",
+        "isBanned",
+        "readers",
+        "comments_number",
+        "likes_number",
+        "image",
+      ],
+      include: [
+        {
+          model: Blog,
+          attributes: ["id", "name", "isBanned"],
+          where: {
+            isBanned: false,
+          },
+          include: {
+            model: BlogAccount,
+            attributes: ["id", "username", "email", "isBanned"],
+            where: {
+              isBanned: false,
+            },
+          },
+        },
+      ],
+      where: {
+        isBanned: false,
+      },
+      order: [["readers", "DESC"]],
+      limit: 10,
+    });
+
+    if (dbResults) {
+      dbResults.forEach((r) => {
+        results.push({
+          id: r.id,
+          title: r.title,
+          text: r.text,
+          readers: r.readers,
+          likes: r.likes_number,
+          comments: r.comments_number,
+          image: r.image,
+          blog: {
+            id: r.blog.id,
+            name: r.blog.name,
+            account: {
+              id: r.blog.blogAccount.id,
+              username: r.blog.blogAccount.username,
+              email: r.blog.blogAccount.email,
+            },
+          },
+        });
+      });
+    }
+    return results;
+  } catch (error) {
+    console.log(error.message);
+    throw new Error("Error trying to get posts with more readers");
+  }
+};
+
+// Get last posts
+const getLastPosts = async () => {
+  const results = [];
+  try {
+    const dbResults = await Post.findAll({
+      attributes: [
+        "id",
+        "title",
+        "text",
+        "isBanned",
+        "readers",
+        "comments_number",
+        "likes_number",
+        "image",
+      ],
+      include: [
+        {
+          model: Blog,
+          attributes: ["id", "name", "isBanned"],
+          where: {
+            isBanned: false,
+          },
+          include: {
+            model: BlogAccount,
+            attributes: ["id", "username", "email", "isBanned"],
+            where: {
+              isBanned: false,
+            },
+          },
+        },
+      ],
+      where: {
+        isBanned: false,
+      },
+      order: [["createdAt", "DESC"]],
+      limit: 10,
+    });
+
+    if (dbResults) {
+      dbResults.forEach((r) => {
+        results.push({
+          id: r.id,
+          title: r.title,
+          text: r.text,
+          readers: r.readers,
+          likes: r.likes_number,
+          comments: r.comments_number,
+          image: r.image,
+          blog: {
+            id: r.blog.id,
+            name: r.blog.name,
+            account: {
+              id: r.blog.blogAccount.id,
+              username: r.blog.blogAccount.username,
+              email: r.blog.blogAccount.email,
+            },
+          },
+        });
+      });
+    }
+    return results;
+  } catch (error) {
+    console.log(error.message);
+    throw new Error("Error trying to get last posts");
+  }
+};
+
 module.exports = {
   getPostById,
   createPost,
@@ -579,4 +713,6 @@ module.exports = {
   getBlogPosts,
   getOwnBlogPosts,
   incrementReader,
+  getPostsMoreReaders,
+  getLastPosts,
 };
