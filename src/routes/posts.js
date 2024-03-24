@@ -12,6 +12,18 @@ router.get(
   ensureAuthenticatedUser,
   usersPostsController.getPostById
 );
+// Get post with more readers
+router.get(
+  "/posts/readers",
+  ensureAuthenticatedUser,
+  usersPostsController.getPostsMoreReaders
+);
+// Get last posts
+router.get(
+  "/posts/last",
+  ensureAuthenticatedUser,
+  usersPostsController.getLastPosts
+);
 // Get Blogs posts
 router.get(
   "/posts/blog/:id",
