@@ -26,7 +26,7 @@ const getPostById = async (id) => {
           attributes: ["id", "name", "isBanned"],
           include: {
             model: BlogAccount,
-            attributes: ["id", "username", "email", "isBanned"],
+            attributes: ["id", "username", "email", "isBanned", "image"],
           },
         },
       ],
@@ -49,6 +49,7 @@ const getPostById = async (id) => {
           account: {
             id: result.blog.blogAccount.id,
             username: result.blog.blogAccount.username,
+            email: result.blog.blogAccount.email,
             image: result.blog.blogAccount.image,
             isBanned: result.blog.blogAccount.isBanned,
           },
@@ -225,6 +226,346 @@ const deletePost = async (id) => {
   }
 };
 
+// Get posts
+const getPosts = async (id, page, limit) => {
+  const results = [];
+  try {
+    const dbResults = await Post.findAndCountAll({
+      attributes: [
+        "id",
+        "title",
+        "text",
+        "isBanned",
+        "readers",
+        "comments_number",
+        "likes_number",
+        "image",
+      ],
+      include: [
+        {
+          model: Blog,
+          attributes: ["id", "name", "isBanned"],
+          where: {
+            isBanned: false,
+            blogAccountId: {
+              [Op.not]: id,
+            },
+          },
+          include: {
+            model: BlogAccount,
+            attributes: ["id", "username", "email", "isBanned"],
+            where: {
+              isBanned: false,
+            },
+          },
+        },
+      ],
+      where: {
+        isBanned: false,
+      },
+      order: [["createdAt", "DESC"]],
+      limit,
+      offset: page * limit - limit,
+    });
+
+    if (dbResults.count === 0) {
+      return false;
+    }
+
+    if (dbResults.rows.length > 0) {
+      dbResults.rows.forEach((r) => {
+        results.push({
+          id: r.id,
+          title: r.title,
+          text: r.text,
+          readers: r.readers,
+          likes: r.likes_number,
+          comments: r.comments_number,
+          image: r.image,
+          blog: {
+            id: r.blog.id,
+            name: r.blog.name,
+            account: {
+              id: r.blog.blogAccount.id,
+              username: r.blog.blogAccount.username,
+              email: r.blog.blogAccount.email,
+            },
+          },
+        });
+      });
+
+      return {
+        totalResults: dbResults.count,
+        totalPages: Math.ceil(dbResults.count / limit),
+        page: parseInt(page),
+        data: results,
+      };
+    } else {
+      return { data: [] };
+    }
+  } catch (error) {
+    console.log(error.message);
+    throw new Error("Error trying to get all posts");
+  }
+};
+
+// Get filtered posts
+const getFilteredPosts = async (id, text, page, limit) => {
+  const results = [];
+  try {
+    const dbResults = await Post.findAndCountAll({
+      attributes: [
+        "id",
+        "title",
+        "text",
+        "isBanned",
+        "readers",
+        "comments_number",
+        "likes_number",
+        "image",
+      ],
+      include: [
+        {
+          model: Blog,
+          attributes: ["id", "name", "isBanned"],
+          where: {
+            isBanned: false,
+            blogAccountId: {
+              [Op.not]: id,
+            },
+          },
+          include: {
+            model: BlogAccount,
+            attributes: ["id", "username", "email", "isBanned"],
+            where: {
+              isBanned: false,
+            },
+          },
+        },
+      ],
+      where: {
+        isBanned: false,
+        [Op.or]: {
+          title: {
+            [Op.iLike]: `%${text}%`,
+          },
+          text: {
+            [Op.iLike]: `%${text}%`,
+          },
+        },
+      },
+      order: [["createdAt", "DESC"]],
+      limit,
+      offset: page * limit - limit,
+    });
+
+    if (dbResults.count === 0) {
+      return false;
+    }
+
+    if (dbResults.rows.length > 0) {
+      dbResults.rows.forEach((r) => {
+        results.push({
+          id: r.id,
+          title: r.title,
+          text: r.text,
+          readers: r.readers,
+          likes: r.likes_number,
+          comments: r.comments_number,
+          image: r.image,
+          blog: {
+            id: r.blog.id,
+            name: r.blog.name,
+            account: {
+              id: r.blog.blogAccount.id,
+              username: r.blog.blogAccount.username,
+              email: r.blog.blogAccount.email,
+            },
+          },
+        });
+      });
+
+      return {
+        totalResults: dbResults.count,
+        totalPages: Math.ceil(dbResults.count / limit),
+        page: parseInt(page),
+        data: results,
+      };
+    } else {
+      return { data: [] };
+    }
+  } catch (error) {
+    console.log(error.message);
+    throw new Error("Error trying to get filtered posts");
+  }
+};
+
+// Get blog posts
+const getBlogPosts = async (id, page, limit) => {
+  const results = [];
+  try {
+    const dbResults = await Post.findAndCountAll({
+      attributes: [
+        "id",
+        "title",
+        "text",
+        "isBanned",
+        "readers",
+        "comments_number",
+        "likes_number",
+        "image",
+      ],
+      include: [
+        {
+          model: Blog,
+          attributes: ["id", "name", "isBanned"],
+          where: {
+            isBanned: false,
+            id,
+          },
+          include: {
+            model: BlogAccount,
+            attributes: ["id", "username", "email", "isBanned"],
+            where: {
+              isBanned: false,
+            },
+          },
+        },
+      ],
+      where: {
+        isBanned: false,
+      },
+      order: [["createdAt", "DESC"]],
+      limit,
+      offset: page * limit - limit,
+    });
+
+    if (dbResults.count === 0) {
+      return false;
+    }
+
+    if (dbResults.rows.length > 0) {
+      dbResults.rows.forEach((r) => {
+        results.push({
+          id: r.id,
+          title: r.title,
+          text: r.text,
+          readers: r.readers,
+          likes: r.likes_number,
+          comments: r.comments_number,
+          image: r.image,
+          blog: {
+            id: r.blog.id,
+            name: r.blog.name,
+            account: {
+              id: r.blog.blogAccount.id,
+              username: r.blog.blogAccount.username,
+              email: r.blog.blogAccount.email,
+            },
+          },
+        });
+      });
+
+      return {
+        totalResults: dbResults.count,
+        totalPages: Math.ceil(dbResults.count / limit),
+        page: parseInt(page),
+        data: results,
+      };
+    } else {
+      return { data: [] };
+    }
+  } catch (error) {
+    console.log(error.message);
+    throw new Error("Error trying to get blog posts");
+  }
+};
+
+// Get Own blog posts
+const getOwnBlogPosts = async (id, page, limit) => {
+  const results = [];
+  try {
+    const dbResults = await Post.findAndCountAll({
+      attributes: [
+        "id",
+        "title",
+        "text",
+        "isBanned",
+        "readers",
+        "comments_number",
+        "likes_number",
+        "image",
+      ],
+      include: [
+        {
+          model: Blog,
+          attributes: ["id", "name", "isBanned"],
+          where: {
+            id,
+          },
+          include: {
+            model: BlogAccount,
+            attributes: ["id", "username", "email", "isBanned"],
+          },
+        },
+      ],
+      order: [["createdAt", "DESC"]],
+      limit,
+      offset: page * limit - limit,
+    });
+
+    if (dbResults.count === 0) {
+      return false;
+    }
+
+    if (dbResults.rows.length > 0) {
+      dbResults.rows.forEach((r) => {
+        results.push({
+          id: r.id,
+          title: r.title,
+          text: r.text,
+          readers: r.readers,
+          likes: r.likes_number,
+          comments: r.comments_number,
+          image: r.image,
+          isBanned: r.isBanned,
+          blog: {
+            id: r.blog.id,
+            name: r.blog.name,
+            account: {
+              id: r.blog.blogAccount.id,
+              username: r.blog.blogAccount.username,
+              email: r.blog.blogAccount.email,
+            },
+          },
+        });
+      });
+
+      return {
+        totalResults: dbResults.count,
+        totalPages: Math.ceil(dbResults.count / limit),
+        page: parseInt(page),
+        data: results,
+      };
+    } else {
+      return { data: [] };
+    }
+  } catch (error) {
+    console.log(error.message);
+    throw new Error("Error trying to get own blog posts");
+  }
+};
+
+// Increment reader
+const incrementReader = async (id) => {
+  try {
+    await Post.increment({ readers: 1 }, { where: { id } });
+  } catch (error) {
+    console.log(error.message);
+    throw new Error("Error trying to increment reader");
+  }
+};
+
 module.exports = {
   getPostById,
   createPost,
@@ -233,4 +574,9 @@ module.exports = {
   updatePostTitle,
   deletePostImage,
   deletePost,
+  getPosts,
+  getFilteredPosts,
+  getBlogPosts,
+  getOwnBlogPosts,
+  incrementReader,
 };
