@@ -6,6 +6,26 @@ const usersPostsController = require("../controllers/usersPosts");
 
 const { ensureAuthenticatedUser } = require("../utils/index");
 
+// Get Post by Id
+router.get(
+  "/post/:id",
+  ensureAuthenticatedUser,
+  usersPostsController.getPostById
+);
+// Get Blogs posts
+router.get(
+  "/posts/blog/:id",
+  ensureAuthenticatedUser,
+  usersPostsController.getBlogPosts
+);
+// Get filtered posts
+router.get(
+  "/posts/filter",
+  ensureAuthenticatedUser,
+  usersPostsController.getFilteredPosts
+);
+// Get posts
+router.get("/posts", ensureAuthenticatedUser, usersPostsController.getPosts);
 // Create new post
 router.post(
   "/post",
