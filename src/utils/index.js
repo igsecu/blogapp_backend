@@ -157,6 +157,22 @@ const validateText = (text) => {
   return false;
 };
 
+// Validates page
+const validatePage = (page) => {
+  if (page !== "0" && !parseInt(page)) {
+    return true;
+  }
+  return false;
+};
+
+// Validates limit
+const validateLimit = (limit) => {
+  if (limit !== "0" && !parseInt(limit)) {
+    return true;
+  }
+  return false;
+};
+
 // Access Control User
 const ensureAuthenticatedUser = (req, res, next) => {
   if (req.isAuthenticated()) {
@@ -345,4 +361,6 @@ module.exports = {
   validateName,
   validateText,
   validateTitle,
+  validatePage,
+  validateLimit,
 };
