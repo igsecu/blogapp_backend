@@ -76,7 +76,7 @@ const createAccount = async (req, res, next) => {
 
             const url = `${process.env.URL}/api/users/account/${account.id}/verify`;
 
-            //await emailsServices.sendEmailVerification(url, account.email);
+            await emailsServices.sendEmailVerification(url, account.email);
 
             await notificationsServices.createNotification(
               account.id,
@@ -416,7 +416,7 @@ const requestPassword = async (req, res, next) => {
 
     const url = `${process.env.URL}/account/reset/password?token=${newToken.token}&accountId=${emailExist.dataValues.id}`;
 
-    //await emailsServices.sendEmailRequestPassword(url, email);
+    await emailsServices.sendEmailRequestPassword(url, email);
 
     return res.status(200).json({
       statusCode: 200,
@@ -521,9 +521,9 @@ const resetPassword = async (req, res, next) => {
           );
 
           if (updatedAccount) {
-            /*  await emailsServices.sendEmailPasswordConfirmation(
+            await emailsServices.sendEmailPasswordConfirmation(
               updatedAccount.email
-            ); */
+            );
 
             await tokenServices.deleteToken(token.id);
 
